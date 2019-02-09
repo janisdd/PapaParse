@@ -1348,6 +1348,8 @@ License: MIT
 		var preview = config.preview;
 		var fastMode = config.fastMode;
 		var quoteChar;
+		var allowSpaces = config.allowSpaces;
+
 		/** Allows for no quoteChar by setting quoteChar to undefined in config */
 		if (config.quoteChar === undefined) {
 			quoteChar = '"';
@@ -1376,6 +1378,9 @@ License: MIT
 		// Newline must be valid: \r, \n, or \r\n
 		if (newline !== '\n' && newline !== '\r' && newline !== '\r\n')
 			newline = '\n';
+
+		if (config.allowLeadingSpaces === undefined)
+			allowSpaces = false;
 
 		// We're gonna need these at the Parser scope
 		var cursor = 0;
@@ -1438,6 +1443,7 @@ License: MIT
 			var nextNewline = input.indexOf(newline, cursor);
 			var quoteCharRegex = new RegExp(escapeRegExp(escapeChar) + escapeRegExp(quoteChar), 'g');
 			var quoteSearch;
+			var numSpaces = 0; //the number of (maybe unnecessary) spaces after a delimiter (field ended)
 
 			// Parser loop
 			for (;;)
@@ -1472,9 +1478,14 @@ License: MIT
 							return finish();
 						}
 
+						// Closing quote followed by spaces at EOF
+						var spacesBeforeEnd = spacesUntilChar(quoteSearch + 1);
+
 						// Closing quote at EOF
-						if (quoteSearch === inputLen - 1)
+						if (quoteSearch === inputLen - 1 ||
+							(allowSpaces && quoteSearch + spacesBeforeEnd === inputLen - 1))
 						{
+							// No numSpaces here because quoted field does not include leading spaces before quotes
 							var value = input.substring(cursor, quoteSearch).replace(quoteCharRegex, quoteChar);
 							return finish(value);
 						}
@@ -1496,12 +1507,22 @@ License: MIT
 						// Check up to nextDelim or nextNewline, whichever is closest
 						var checkUpTo = nextNewline === -1 ? nextDelim : Math.min(nextDelim, nextNewline);
 						var spacesBetweenQuoteAndDelimiter = extraSpaces(checkUpTo);
+						var spacesBeforeDelimiter = spacesUntilChar(quoteSearch + 1 + spacesBetweenQuoteAndDelimiter);
 
 						// Closing quote followed by delimiter or 'unnecessary spaces + delimiter'
-						if (input[quoteSearch + 1 + spacesBetweenQuoteAndDelimiter] === delim)
+						// Or closing quote followed by 'spaces + delimiter' or 'unnecessary spaces + delimiter'
+						if (input[quoteSearch + 1 + spacesBetweenQuoteAndDelimiter] === delim
+							|| (allowSpaces && input[quoteSearch + 1 + spacesBetweenQuoteAndDelimiter + spacesBeforeDelimiter] === delim))
 						{
+							//since we are in a quoted field we discard leading spaces before starting quote (no cursor - numSpaces)
 							row.push(input.substring(cursor, quoteSearch).replace(quoteCharRegex, quoteChar));
 							cursor = quoteSearch + 1 + spacesBetweenQuoteAndDelimiter + delimLen;
+
+							cursor += allowSpaces ? spacesBeforeDelimiter : 0;
+
+							numSpaces = allowSpaces ? spacesUntilChar(cursor) : 0;
+							cursor += numSpaces;
+
 							nextDelim = input.indexOf(delim, cursor);
 							nextNewline = input.indexOf(newline, cursor);
 							break;
@@ -1512,9 +1533,14 @@ License: MIT
 						// Closing quote followed by newline or 'unnecessary spaces + newLine'
 						if (input.substr(quoteSearch + 1 + spacesBetweenQuoteAndNewLine, newlineLen) === newline)
 						{
+							//since we are in a quoted field we discard leading spaces before starting quote (no cursor - numSpaces)
 							row.push(input.substring(cursor, quoteSearch).replace(quoteCharRegex, quoteChar));
 							saveRow(quoteSearch + 1 + spacesBetweenQuoteAndNewLine + newlineLen);
 							nextDelim = input.indexOf(delim, cursor);	// because we may have skipped the nextDelim in the quoted field
+
+							//the new line could start with spaces
+							numSpaces = allowSpaces ? spacesUntilChar(cursor) : 0;
+							cursor += numSpaces;
 
 							if (stepIsFunction)
 							{
@@ -1561,8 +1587,12 @@ License: MIT
 				// Next delimiter comes before next newline, so we've reached end of field
 				if (nextDelim !== -1 && (nextDelim < nextNewline || nextNewline === -1))
 				{
-					row.push(input.substring(cursor, nextDelim));
+					row.push(input.substring(cursor - numSpaces, nextDelim));
 					cursor = nextDelim + delimLen;
+
+					numSpaces = allowSpaces ? spacesUntilChar(cursor) : 0;
+					cursor += numSpaces;
+
 					nextDelim = input.indexOf(delim, cursor);
 					continue;
 				}
@@ -1570,8 +1600,12 @@ License: MIT
 				// End of row
 				if (nextNewline !== -1)
 				{
-					row.push(input.substring(cursor, nextNewline));
+					row.push(input.substring(cursor - numSpaces, nextNewline));
 					saveRow(nextNewline + newlineLen);
+
+					//the new line could start with spaces
+					numSpaces = allowSpaces ? spacesUntilChar(cursor) : 0;
+					cursor += numSpaces;
 
 					if (stepIsFunction)
 					{
@@ -1589,7 +1623,8 @@ License: MIT
 				break;
 			}
 
-
+			// The last field is an unquoted field so add the spaces
+			cursor -= allowSpaces ? numSpaces : 0;
 			return finish();
 
 
@@ -1612,6 +1647,22 @@ License: MIT
 					}
 				}
 				return spaceLength;
+			}
+
+			/**
+			 * returns the number of spaces (whitespace or tab) until we find a non-space character
+			 * @param {*} index the current index in the input (cursor)
+			 */
+			function spacesUntilChar(index) {
+				var spaceLength = 0;
+				var indexStart = index;
+				if (index === -1) return spaceLength;
+
+				while(index < input.length && (input[index] === ' ' || input[index] === '\t')) {
+					index++;
+				}
+
+				return index - indexStart;
 			}
 
 			/**

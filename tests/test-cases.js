@@ -1418,7 +1418,1430 @@ var PARSE_TESTS = [
 			data: [['a', 'b'], ['c', 'd'], [' , ', ','], ['" "', '""']],
 			errors: []
 		}
-	}
+	},
+	{
+		description: "01",
+		input: 'a, b,c,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, b, c,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b', ' c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, b ,c,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b ', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, b , c,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b ', ' c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, b , c ,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b ', ' c ', 'd', 'e']],
+			errors: []
+		}
+	},
+
+	//c quoted
+	{
+		description: "01",
+		input: 'a, b,"c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, b, "c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, b ,"c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b ', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, b , "c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b ', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, b , "c" ,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b ', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+
+	//quoted b, c not
+	{
+		description: "01",
+		input: 'a, "b",c,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b", c,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b', ' c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b" ,c,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b" , c,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b', ' c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b" , c ,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b', ' c ', 'd', 'e']],
+			errors: []
+		}
+	},
+
+	//quoted b, c
+	{
+		description: "01",
+		input: 'a, "b","c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b", "c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b" ,"c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b" , "c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b" , "c" ,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+
+	//newlines, b not quoted
+	{
+		description: "01",
+		input: 'a, b,"c\nc",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b', 'c\nc', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, b, " c\nc",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b', " c\nc", 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, b ," c\nc",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b ', " c\nc", 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, b , " c\nc",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b ', " c\nc", 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, b , "c\nc" ,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b ', 'c\nc', 'd', 'e']],
+			errors: []
+		}
+	},
+	//new line, b, c quoted
+	{
+		description: "01",
+		input: 'a, "b\nb",c,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\nb', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b\nb", c,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\nb', ' c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "03",
+		input: 'a, "b\nb",c ,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\nb', 'c ', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "04",
+		input: 'a, "b\nb","c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\nb', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "05",
+		input: 'a, "b\nb", "c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\nb', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "06",
+		input: 'a, "b\nb", "c" ,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\nb', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+	//newline, b no leading space
+
+	{
+		description: "01",
+		input: 'a,b,"c\nc",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b', 'c\nc', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a,b, " c\nc",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b', " c\nc", 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a,b ," c\nc",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b ', " c\nc", 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a,b , " c\nc",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b ', " c\nc", 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, b , "c\nc" ,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b ', 'c\nc', 'd', 'e']],
+			errors: []
+		}
+	},
+	//new line, b, c quoted
+	{
+		description: "01",
+		input: 'a, "b\nb",c,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\nb', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b\nb", c,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\nb', ' c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "03",
+		input: 'a, "b\nb",c ,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\nb', 'c ', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "04",
+		input: 'a, "b\nb","c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\nb', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "05",
+		input: 'a, "b\nb", "c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\nb', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "06",
+		input: 'a, "b\nb", "c" ,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\nb', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+
+
+	//c also new line
+	{
+		description: "01",
+		input: 'a, "b\nb","c\nc",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\nb', 'c\nc', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b\nb", "c\nc",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\nb', 'c\nc', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "07",
+		input: 'a, "b\nb","c\nc" ,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\nb', 'c\nc', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "08",
+		input: 'a, "b\nb","c\nc",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\nb', 'c\nc', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "09",
+		input: 'a, "b\nb", "c\nc",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\nb', 'c\nc', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b\nb", "c\nc" ,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\nb', 'c\nc', 'd', 'e']],
+			errors: []
+		}
+	},
+
+	//special b
+
+	{
+		description: "01",
+		input: 'a, " b\nb",c,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b\nb', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, " b\nb", c,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b\nb', ' c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, " b\nb" ,c,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b\nb', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, " b\nb" , c,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b\nb', ' c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, " b\nb" , c ,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b\nb', ' c ', 'd', 'e']],
+			errors: []
+		}
+	},
+
+	{
+		description: "01",
+		input: 'a, " b\nb","c\nc",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b\nb', 'c\nc', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, " b\nb", "c\nc",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b\nb', 'c\nc', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, " b\nb" ,"c\nc",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b\nb', 'c\nc', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, " b\nb" , "c\nc",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b\nb', 'c\nc', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b\nb" , "c\nc" ,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\nb', 'c\nc', 'd', 'e']],
+			errors: []
+		}
+	},
+	//newline b,c quoted
+	{
+		description: "01",
+		input: 'a, " b\nb","c\nc",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b\nb', 'c\nc', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, " b\nb", "c\nc",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b\nb', 'c\nc', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, " b\nb" ,"c\nc",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b\nb', 'c\nc', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, " b\nb" , "c\nc",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b\nb', 'c\nc', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b\nb" , "c\nc" ,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\nb', 'c\nc', 'd', 'e']],
+			errors: []
+		}
+	},
+
+	//---delimiter in quotes, quoted b, c not
+	{
+		description: "01",
+		input: 'a, "b,b",c,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b,b', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b,b", c,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b,b', ' c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b,b" ,c,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b,b', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b,b" , c,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b,b', ' c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b,b" , c ,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b,b', ' c ', 'd', 'e']],
+			errors: []
+		}
+	},
+
+	//delimiter in quotes, not b, c quoted
+
+	{
+		description: "01",
+		input: 'a, b,"c,c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b', 'c,c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, b, "c,c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b', 'c,c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, b ,"c,c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b ', 'c,c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, b , "c,c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b ', 'c,c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, b , "c,c" ,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b ', 'c,c', 'd', 'e']],
+			errors: []
+		}
+	},
+	//b quoted, c quoted + delimiter
+	{
+		description: "01",
+		input: 'a, "b","c,c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b', 'c,c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b", "c,c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b', 'c,c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b" ,"c,c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b', 'c,c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b" , "c,c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b', 'c,c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b" , "c,c" ,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b', 'c,c', 'd', 'e']],
+			errors: []
+		}
+	},
+
+	//delimiter in quotes, quoted b, c
+	{
+		description: "01",
+		input: 'a, "b,b","c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b,b', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b,b", "c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b,b', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b,b" ,"c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b,b', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b,b" , "c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b,b', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b,b" , "c" ,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b,b', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+
+	//delimiter in quotes, quoted b, quoted c
+	{
+		description: "01",
+		input: 'a, "b,b","c,c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b,b', 'c,c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b,b", "c,c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b,b', 'c,c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b,b" ,"c,c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b,b', 'c,c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b,b" , "c,c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b,b', 'c,c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b,b" , "c,c" ,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b,b', 'c,c', 'd', 'e']],
+			errors: []
+		}
+	},
+
+	//---- new line and delimiter
+
+
+	//newlines, b not quoted
+	{
+		description: "01",
+		input: 'a, b,"c\n,c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b', 'c\n,c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, b, " c\n,c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b', " c\n,c", 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, b ," c\n,c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b ', " c\n,c", 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, b , " c\n,c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b ', " c\n,c", 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, b , "c\n,c" ,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b ', 'c\n,c', 'd', 'e']],
+			errors: []
+		}
+	},
+	//new line, b, c quoted
+	{
+		description: "01",
+		input: 'a, "b\n,b",c,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\n,b', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b\n,b", c,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\n,b', ' c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "03",
+		input: 'a, "b\n,b",c ,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\n,b', 'c ', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "04",
+		input: 'a, "b\n,b","c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\n,b', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "05",
+		input: 'a, "b\n,b", "c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\n,b', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "06",
+		input: 'a, "b\n,b", "c" ,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\n,b', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+	//newline, b no leading space
+
+	{
+		description: "01",
+		input: 'a,b,"c\n,c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b', 'c\n,c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a,b, " c\n,c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b', " c\n,c", 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a,b ," c\n,c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b ', " c\n,c", 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a,b , " c\n,c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b ', " c\n,c", 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, b , "c\n,c" ,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b ', 'c\n,c', 'd', 'e']],
+			errors: []
+		}
+	},
+	//new line, b, c quoted
+	{
+		description: "01",
+		input: 'a, "b\n,b",c,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\n,b', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b\n,b", c,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\n,b', ' c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "03",
+		input: 'a, "b\n,b",c ,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\n,b', 'c ', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "04",
+		input: 'a, "b\n,b","c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\n,b', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "05",
+		input: 'a, "b\n,b", "c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\n,b', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "06",
+		input: 'a, "b\n,b", "c" ,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\n,b', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+
+
+	//c also new line
+	{
+		description: "01",
+		input: 'a, "b\n,b","c\nc",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\n,b', 'c\nc', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b\n,b", "c\nc",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\n,b', 'c\nc', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "07",
+		input: 'a, "b\n,b","c\nc" ,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\n,b', 'c\nc', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "08",
+		input: 'a, "b\n,b","c\nc",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\n,b', 'c\nc', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "09",
+		input: 'a, "b\n,b", "c\nc",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\n,b', 'c\nc', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b\n,b", "c\nc" ,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\n,b', 'c\nc', 'd', 'e']],
+			errors: []
+		}
+	},
+
+	//special b
+
+	{
+		description: "01",
+		input: 'a, " b\n,b",c,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b\n,b', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, " b\n,b", c,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b\n,b', ' c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, " b\n,b" ,c,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b\n,b', 'c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, " b\n,b" , c,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b\n,b', ' c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, " b\n,b" , c ,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b\n,b', ' c ', 'd', 'e']],
+			errors: []
+		}
+	},
+
+	{
+		description: "01",
+		input: 'a, " b\n,b","c\nc",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b\n,b', 'c\nc', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, " b\n,b", "c\nc",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b\n,b', 'c\nc', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, " b\n,b" ,"c\nc",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b\n,b', 'c\nc', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, " b\n,b" , "c\nc",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b\n,b', 'c\nc', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b\n,b" , "c\nc" ,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\n,b', 'c\nc', 'd', 'e']],
+			errors: []
+		}
+	},
+	//newline b,c quoted
+	{
+		description: "01",
+		input: 'a, " b\n,b","c\nc",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b\n,b', 'c\nc', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, " b\n,b", "c\nc",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b\n,b', 'c\nc', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, " b\n,b" ,"c\nc",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b\n,b', 'c\nc', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, " b\n,b" , "c\nc",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b\n,b', 'c\nc', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b\n,b" , "c\nc" ,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\n,b', 'c\nc', 'd', 'e']],
+			errors: []
+		}
+	},
+
+	//---- delimiter in c\nc
+
+
+	{
+		description: "01",
+		input: 'a,b,"c\n,,c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b', 'c\n,,c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a,b, " c\n,,c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b', " c\n,,c", 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a,b ," c\n,,c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b ', " c\n,,c", 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a,b , " c\n,,c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b ', " c\n,,c", 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, b , "c\n,,c" ,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b ', 'c\n,,c', 'd', 'e']],
+			errors: []
+		}
+	},
+	//c also new line
+	{
+		description: "01",
+		input: 'a, "b\n,b","c\n,c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\n,b', 'c\n,c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b\n,b", "c\n,c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\n,b', 'c\n,c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "07",
+		input: 'a, "b\n,b","c\n,c" ,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\n,b', 'c\n,c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "08",
+		input: 'a, "b\n,b","c\n,c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\n,b', 'c\n,c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "09",
+		input: 'a, "b\n,b", "c\n,c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\n,b', 'c\n,c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b\n,b", "c\n,c" ,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\n,b', 'c\n,c', 'd', 'e']],
+			errors: []
+		}
+	},
+
+	{
+		description: "01",
+		input: 'a, " b\n,b","c\n,c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b\n,b', 'c\n,c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, " b\n,b", "c\n,c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b\n,b', 'c\n,c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, " b\n,b" ,"c\n,c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b\n,b', 'c\n,c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, " b\n,b" , "c\n,c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b\n,b', 'c\n,c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b\n,b" , "c\n,c" ,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\n,b', 'c\n,c', 'd', 'e']],
+			errors: []
+		}
+	},
+	//newline b,c quoted
+	{
+		description: "01",
+		input: 'a, " b\n,b","c\n,c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b\n,b', 'c\n,c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, " b\n,b", "c\n,c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b\n,b', 'c\n,c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, " b\n,b" ,"c\n,c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b\n,b', 'c\n,c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, " b\n,b" , "c\n,c",d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', ' b\n,b', 'c\n,c', 'd', 'e']],
+			errors: []
+		}
+	},
+	{
+		description: "01",
+		input: 'a, "b\n,b" , "c\n,c" ,d,e',
+		config: { allowSpaces: true },
+		expected: {
+			data: [['a', 'b\n,b', 'c\n,c', 'd', 'e']],
+			errors: []
+		}
+	},
+
 ];
 
 describe('Parse Tests', function() {
