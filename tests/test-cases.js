@@ -1666,6 +1666,24 @@ var UNPARSE_TESTS = [
 		expected: '"Col1",Col2,"Col3"\r\n"a",b,"c"\r\n"d",e,"f"'
 	},
 	{
+		description: "Force quotes around null and undefined fields",
+		input: [['a', 'b', 'c', 'd'], [null, undefined, '', 'e']],
+		config: { quotes: [true, true, true, false] },
+		expected: '"a","b","c",d\r\n"","","",e'
+	},
+	{
+		description: "Not force quotes around null and undefined fields results in empty value",
+		input: [['a', 'b', 'c', 'd'], [null, undefined, '', 'e']],
+		config: { quotes: [false, false, false, false] },
+		expected: 'a,b,c,d\r\n,,,e'
+	},
+	{
+		description: "Force quites array has not an entry for all columns (defaults to false)",
+		input: [['a', 'b', 'c', 'd'], [null, undefined, '', 'e']],
+		config: { quotes: [false] },
+		expected: 'a,b,c,d\r\n,,,e'
+	},
+	{
 		description: "Empty input",
 		input: [],
 		expected: ''
