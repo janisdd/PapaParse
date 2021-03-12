@@ -1666,10 +1666,10 @@ var UNPARSE_TESTS = [
 		expected: '"Col1",Col2,"Col3"\r\n"a",b,"c"\r\n"d",e,"f"'
 	},
 	{
-		description: "Force quotes around null and undefined fields",
+		description: "Do not force quotes around null and undefined fields",
 		input: [['a', 'b', 'c', 'd'], [null, undefined, '', 'e']],
 		config: { quotes: [true, true, true, false] },
-		expected: '"a","b","c",d\r\n"","","",e'
+		expected: '"a","b","c",d\r\n,,,e'
 	},
 	{
 		description: "Not force quotes around null and undefined fields results in empty value",
@@ -1681,6 +1681,23 @@ var UNPARSE_TESTS = [
 		description: "Force quites array has not an entry for all columns (defaults to false)",
 		input: [['a', 'b', 'c', 'd'], [null, undefined, '', 'e']],
 		config: { quotes: [false] },
+		expected: 'a,b,c,d\r\n,,,e'
+	},
+	{
+		description: "Force quotes around null and undefined fields with option",
+		input: [['a', 'b', 'c', 'd'], [null, undefined, '', 'e']],
+		config: { quotes: [true, true, true, false], quoteEmptyOrNullFields: true }, //also empty = empty string or undefined
+		expected: '"a","b","c",d\r\n"","","",e'
+	},
+	{
+		description: "Force quotes around null, undefined and empty values with default for quotes and quoteEmptyOrNullFields=true",
+		input: [['a', 'b', 'c', 'd'], [null, undefined, '', 'e']],
+		config: { quoteEmptyOrNullFields: true }, //also empty = empty string or undefined
+		expected: 'a,b,c,d\r\n"","","",e'
+	},
+	{
+		description: "Dot not force quotes for null, undefined and empty lines with default options",
+		input: [['a', 'b', 'c', 'd'], [null, undefined, '', 'e']],
 		expected: 'a,b,c,d\r\n,,,e'
 	},
 	{
