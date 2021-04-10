@@ -806,6 +806,96 @@ var PARSE_TESTS = [
 		}
 	},
 	{
+		description: "Multi-character delimiter (length 2) with quoted field",
+		input: 'a, b, "c, e", d',
+		config: { delimiter: ", " },
+		notes: "The quotes must be immediately adjacent to the delimiter to indicate a quoted field",
+		expected: {
+			data: [['a', 'b', 'c, e', 'd']],
+			errors: []
+		}
+	},
+	{
+		description: "Multi-character delimiter (length 3) with quoted field",
+		input: 'a,..b,.."c,..e",..d',
+		config: { delimiter: ",.." },
+		notes: "The quotes must be immediately adjacent to the delimiter to indicate a quoted field",
+		expected: {
+			data: [['a', 'b', 'c,..e', 'd']],
+			errors: []
+		}
+	},
+	{
+		description: "Whitespace at edges of unquoted field with multi character-delimiter",
+		input: 'a,.	b ,.c',
+		notes: "Extra whitespace should graciously be preserved",
+		config: { delimiter: ",." },
+		expected: {
+			data: [['a', '	b ', 'c']],
+			errors: []
+		}
+	},
+	{
+		description: "Multi-character delimiter with quoted field and unnecessary spaces after quote end (field quoted collapse spaces outside of quotes)",
+		input: 'a,.b,."c,.e"  ,.d',
+		config: { delimiter: ",." },
+		notes: "The quotes must be immediately adjacent to the delimiter to indicate a quoted field (this is a quoted field)",
+		expected: {
+			data: [['a', 'b', 'c,.e', 'd']],
+			errors: []
+		}
+	},
+	{
+		description: "Multi-character delimiter with quoted field and unnecessary spaces before field (field quoted collapse spaces outside of quotes)",
+		input: 'a,.b,.  "c,.e",.d',
+		config: { delimiter: ",." },
+		notes: "The quotes must be immediately adjacent to the delimiter to indicate a quoted field (this is NOT a quoted field) | we want to preserve spaces then",
+		expected: {
+			data: [['a', 'b', '  "c', 'e"', 'd']],
+			errors: []
+		}
+	},
+	{
+		description: "Multi-character delimiter with quoted field and unnecessary spaces before and after field  (field quoted collapse spaces outside of quotes)",
+		input: 'a,.b,.   "c,.e"   ,.d',
+		config: { delimiter: ",." },
+		notes: "The quotes must be immediately adjacent to the delimiter to indicate a quoted field (this is NOT a quoted field) | we want to preserve spaces then",
+		expected: {
+			data: [['a', 'b', '   "c', 'e"   ', 'd']],
+			errors: []
+		}
+	},
+	{
+		description: "single delimiter with quoted field and unnecessary spaces after quote end (field quoted collapse spaces outside of quotes)",
+		input: 'a,b,"ce"  ,d',
+		config: { delimiter: "," },
+		notes: "The quotes must be immediately adjacent to the delimiter to indicate a quoted field (this is a quoted field)",
+		expected: {
+			data: [['a', 'b', 'ce', 'd']],
+			errors: []
+		}
+	},
+	{
+		description: "single delimiter with quoted field and unnecessary spaces before quote end (field quoted collapse spaces outside of quotes)",
+		input: 'a,b,  "ce",d',
+		config: { delimiter: "," },
+		notes: "The quotes must be immediately adjacent to the delimiter to indicate a quoted field (this is a NOT quoted field) | we want to preserve spaces then",
+		expected: {
+			data: [['a', 'b', '  "ce"', 'd']],
+			errors: []
+		}
+	},
+	{
+		description: "single delimiter with quoted field and unnecessary spaces befor and after quote end (field quoted collapse spaces outside of quotes)",
+		input: 'a,b,  "ce"  ,d',
+		config: { delimiter: "," },
+		notes: "The quotes must be immediately adjacent to the delimiter to indicate a quoted field (this is a NOT quoted field) | we want to preserve spaces then",
+		expected: {
+			data: [['a', 'b', '  "ce"  ', 'd']],
+			errors: []
+		}
+	},
+	{
 		description: "Callback delimiter",
 		input: 'a$ b$ c',
 		config: { delimiter: function(input) { return input[1] + ' '; } },
