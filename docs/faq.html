@@ -35,7 +35,7 @@
 						</div>
 					</div>
 					<div class="grid-20 hide-on-mobile text-center">
-						<a href="/" class="text-logo">Papa Parse 4</a>
+						<a href="/" class="text-logo">Papa Parse 5</a>
 					</div>
 					<div class="grid-40 mobile-grid-50 text-right">
 						<div class="links">
@@ -45,9 +45,6 @@
 							<a href="http://stackoverflow.com/questions/tagged/papaparse">
 								<i class="fa fa-stack-overflow fa-lg"></i> Help
 							</a>
-							<!-- <a href="https://matt.life/pay" class="donate">
-								<i class="fa fa-heart fa-lg"></i> Donate
-							</a> -->
 						</div>
 					</div>
 				</div>
@@ -241,6 +238,11 @@
 					<p>
 						No. This would drastically slow down parsing, as it would require the worker to wait after every chunk for a "continue" signal from the main thread. But you <i>can</i> abort workers by calling <code>.abort()</code> on the parser that gets passed to your callback function.
 					</p>
+
+					<h6>I set worker:true and now I'm getting an error: "window is not defined." How do I fix it?</h6>
+					<p>
+						This is a fairly common issue with configuration and it appears to be related to the use of React or other third party tools. Since this is a configuration issue, the exact steps needed to solve it may vary. See <a href="https://github.com/mholt/PapaParse/issues/655">Issue #655</a> on GitHub for a solution that worked for one person, and for links to other related issues.
+					</p>
 				</div>
 			</div>
 		</main>
@@ -257,7 +259,7 @@
 						<br><br>
 						Papa Parse by <a href="https://twitter.com/mholt6">Matt Holt</a>
 						<br>
-						&copy; 2013-2018
+						&copy; 2013-2019
 					</div>
 					<div class="grid-15 mobile-grid-50 links">
 						<h5>Learn</h5>
@@ -267,7 +269,7 @@
 					</div>
 					<div class="grid-15 mobile-grid-50 links">
 						<h5>Project</h5>
-						<a href="https://gratipay.com/mholt">Donate</a>
+						<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=S6VTL9FQ6L8EN&item_name=PapaParse&currency_code=EUR&source=url">Donate</a>
 						<a href="https://github.com/mholt/PapaParse">GitHub</a>
 						<a href="https://twitter.com/search?q=%23PapaParse">Share</a>
 					</div>

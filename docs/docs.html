@@ -34,7 +34,7 @@
 						</div>
 					</div>
 					<div class="grid-20 hide-on-mobile text-center">
-						<a href="/" class="text-logo">Papa Parse 4</a>
+						<a href="/" class="text-logo">Papa Parse 5</a>
 					</div>
 					<div class="grid-40 mobile-grid-50 text-right">
 						<div class="links">
@@ -44,9 +44,6 @@
 							<a href="http://stackoverflow.com/questions/tagged/papaparse">
 								<i class="fa fa-stack-overflow fa-lg"></i> Help
 							</a>
-							<!-- <a href="https://matt.life/pay" class="donate">
-								<i class="fa fa-heart fa-lg"></i> Donate
-							</a> -->
 						</div>
 					</div>
 				</div>
@@ -258,10 +255,12 @@
 {
 	quotes: false, //or array of booleans
 	quoteChar: '"',
+	escapeChar: '"',
 	delimiter: ",",
 	header: true,
 	newline: "\r\n",
-	skipEmptyLines: false, //or 'greedy'
+	skipEmptyLines: false, //other option is 'greedy', meaning skip delimiters, quotes, and whitespace.
+	columns: null //or array of strings
 }
 					</code></pre>
 				</div>
@@ -283,13 +282,20 @@
 									<code>quotes</code>
 								</td>
 								<td>
-									If <code>true</code>, forces all fields to be enclosed in quotes. If an array of <code>true/false</code> values, specifies which fields should be force-quoted (first boolean is for the first column, second boolean for the second column, ...).
+									If <code>true</code>, forces all fields to be enclosed in quotes. If an array of <code>true/false</code> values, specifies which fields should be force-quoted (first boolean is for the first column, second boolean for the second column, ...). A function that returns a boolean values can be used to determine the quotes value of a cell. This function accepts the cell value and column index as parameters. <br />
+									Note that this option is ignored for <code>undefined</code>, <code>null</code> and <code>date-object</code> values. The option <code>escapeFormulae</code> also takes precedence over this.
 								</td>
 							</tr>
 							<tr>
 								<td><code>quoteChar</code></td>
 								<td>
 									The character used to quote fields.
+								</td>
+							</tr>
+							<tr>
+								<td><code>escapeChar</code></td>
+								<td>
+									The character used to escape <code>quoteChar</code> inside field values.
 								</td>
 							</tr>
 							<tr>
@@ -313,7 +319,7 @@
 									<code>newline</code>
 								</td>
 								<td>
-									The newline sequence. Must be one of <code>"\r"</code>, <code>"\n"</code>, or <code>"\r\n"</code>.
+									The character used to determine newline sequence. It defaults to <code>"\r\n"</code>.
 								</td>
 							</tr>
 							<tr>
@@ -322,6 +328,22 @@
 								</td>
 								<td>
 									If <code>true</code>, lines that are completely empty (those which evaluate to an empty string) will be skipped. If set to <code>'greedy'</code>, lines that don't have any content (those which have only whitespace after parsing) will also be skipped.
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<code>columns</code>
+								</td>
+								<td>
+									If <code>data</code> is an array of objects this option can be used to manually specify the keys (columns) you expect in the objects. If not set the keys of the first objects are used as column.
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<code>escapeFormulae</code>
+								</td>
+								<td>
+									If <code>true</code>, field values that begin with <code>=</code>, <code>+</code>, <code>-</code>, or <code>@</code>, will be prepended with a <code>'</code> to defend against <a href="https://www.contextis.com/en/blog/comma-separated-vulnerabilities" target="_blank" rel="noopener">injection attacks</a>, because Excel and LibreOffice will automatically parse such cells as formulae.
 								</td>
 							</tr>
 						</table>
@@ -419,8 +441,11 @@ var csv = Papa.unparse({
 	complete: undefined,
 	error: undefined,
 	download: false,
+	downloadRequestHeaders: undefined,
+	downloadRequestBody: undefined,
 	skipEmptyLines: false,
 	chunk: undefined,
+	chunkSize: undefined,
 	fastMode: undefined,
 	beforeFirstChunk: undefined,
 	withCredentials: undefined,
@@ -485,7 +510,7 @@ var csv = Papa.unparse({
 									<code>transformHeader</code>
 								</td>
 								<td>
-									A function to apply on each header. Requires <code>header</code> to be <code>true</code>. The function receives the header as its first argument.<br>
+									A function to apply on each header. Requires <code>header</code> to be <code>true</code>. The function receives the header as its first argument and the index as second.<br>
 									Only available starting with version 5.0.
 								</td>
 							</tr>
@@ -494,7 +519,7 @@ var csv = Papa.unparse({
 									<code>dynamicTyping</code>
 								</td>
 								<td>
-									If true, numeric and boolean data will be converted to their type instead of remaining strings. Numeric data must conform to the definition of a decimal literal. European-formatted numbers must have commas and dots swapped. If also accepts an object or a function. If object it's values should be a boolean to indicate if dynamic typing should be applied for each column number (or header name if using headers). If it's a function, it should return a boolean value for each field number (or name if using headers) which will be passed as first argument.
+									If true, numeric and boolean data will be converted to their type instead of remaining strings. Numeric data must conform to the definition of a decimal literal. Numerical values greater than <code>2^53</code> or less than <code>-2^53</code> will not be converted to numbers to preserve precision. European-formatted numbers must have commas and dots swapped. If also accepts an object or a function. If object it's values should be a boolean to indicate if dynamic typing should be applied for each column number (or header name if using headers). If it's a function, it should return a boolean value for each field number (or name if using headers) which will be passed as first argument.
 								</td>
 							</tr>
 							<tr>
@@ -573,6 +598,27 @@ var csv = Papa.unparse({
 							</tr>
 							<tr>
 								<td>
+									<code>downloadRequestHeaders</code>
+								</td>
+								<td>
+									If defined, should be an object that describes the headers, example:
+
+ 									<pre>
+										<code class="language-javascript">downloadRequestHeaders: {
+'Authorization': 'token 123345678901234567890',
+}</code>
+									</pre>
+							</tr>
+							<tr>
+								<td>
+									<code>downloadRequestBody</code>
+								</td>
+								<td>
+									Use POST request on the URL of the download option. The value passed will be set as the body of the request.
+								</td>
+							</tr>
+							<tr>
+								<td>
 									<code>skipEmptyLines</code>
 								</td>
 								<td>
@@ -585,6 +631,14 @@ var csv = Papa.unparse({
 								</td>
 								<td>
 									A callback function, identical to step, which activates streaming. However, this function is executed after every <i>chunk</i> of the file is loaded and parsed rather than every row. Works only with local and remote files. Do not use both chunk and step callbacks together. For the function signature, see the documentation for the step function.
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<code>chunkSize</code>
+								</td>
+								<td>
+									Overrides <code>Papa.LocalChunkSize</code> and <code>Papa.RemoteChunkSize</code>. See <a href="#configurable">configurable</a> section to know the usage of both parameters.
 								</td>
 							</tr>
 							<tr>
@@ -885,7 +939,7 @@ var csv = Papa.unparse({
 						<br><br>
 						Papa Parse by <a href="https://twitter.com/mholt6">Matt Holt</a>
 						<br>
-						&copy; 2013-2018
+						&copy; 2013-2019
 					</div>
 					<div class="grid-15 mobile-grid-50 links">
 						<h5>Learn</h5>
@@ -895,7 +949,7 @@ var csv = Papa.unparse({
 					</div>
 					<div class="grid-15 mobile-grid-50 links">
 						<h5>Project</h5>
-						<a href="https://gratipay.com/mholt">Donate</a>
+						<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=S6VTL9FQ6L8EN&item_name=PapaParse&currency_code=EUR&source=url">Donate</a>
 						<a href="https://github.com/mholt/PapaParse">GitHub</a>
 						<a href="https://twitter.com/search?q=%23PapaParse">Share</a>
 					</div>
