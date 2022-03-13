@@ -17,7 +17,7 @@ changelog: (latest first)
   - `calcLineIndexToCsvLineIndexMapping: bool` and `calcColumnIndexToCsvColumnIndexMapping: bool`
   - if set to true, the result will contain `outLineIndexToCsvLineIndexMapping` and `outColumnIndexToCsvColumnIndexMapping`
     - outLineIndexToCsvLineIndexMapping: for every line in the input text the csv line it refers to
-    - outColumnIndexToCsvColumnIndexMapping: the end string indices for every csv field in the first csv row (only the first line is used)
+    - outColumnIndexToCsvColumnIndexMapping: the end string indices for every csv field in the first csv row (for every csv row)
 - fixed and issue where multi-character delimiter won't work
 - added option `quoteEmptyOrNullFields` (defaults to false) to unparse which defines how null, undefined and empty strings are quoted
 - fixes issue where all fields quoted and missing closing quote on last field will hang the function guessDelimiter
@@ -1649,7 +1649,10 @@ changelog: (latest first)
 			// [2,3,4,5,6] = "2222,"
 			// [7,8] = "33"
 			//if we us the indices we should always get the delimiter(end)
+			//can be -1 if the field is empty (because we don't skip empty lines before post-processing)(e.g. when the last line is \n)
+			//this is because the out csv line mapping includes entries for the text file lines
 			var outColumnIndexToCsvColumnIndexMapping = null;
+			var currRowColumnIndexToCsvColumnIndexMapping = [];
 
 			if (calcColumnIndexToCsvColumnIndexMapping) {
 				outColumnIndexToCsvColumnIndexMapping = [];
@@ -1712,7 +1715,7 @@ changelog: (latest first)
 						if (calcColumnIndexToCsvColumnIndexMapping) {
 							if (isCommentRow) {
 								//only one string in the row
-								outColumnIndexToCsvColumnIndexMapping.push(row.length - 1); //-1 to get 0 based index
+								currRowColumnIndexToCsvColumnIndexMapping.push(row.length - 1); //-1 to get 0 based index
 							} else {
 								//we have only delimiters...
 								var _cummulativeLength = 0;
@@ -1723,7 +1726,7 @@ changelog: (latest first)
 									} else {
 										_cummulativeLength += value.length;
 									}
-									outColumnIndexToCsvColumnIndexMapping.push(_cummulativeLength - 1); //-1 to get 0 based index
+									currRowColumnIndexToCsvColumnIndexMapping.push(_cummulativeLength - 1); //-1 to get 0 based index
 								});
 							}
 						}
@@ -1747,6 +1750,7 @@ changelog: (latest first)
 			//we don't use fast mode so we assume some field is quoted...
 			columnIsQuoted = [];
 
+			var currentRowStartIndex = 0; //string index used to calculate the relative current field index in the current row
 			var currentFieldEndIndex = -1;
 
 			//if the text does not contain the delimiter (not even in quoted fields) we can return early
@@ -2015,7 +2019,12 @@ changelog: (latest first)
 			{
 				data.push(row);
 				lastCursor = cursor;
-				calcColumnIndexToCsvColumnIndexMapping = false; //stop after first row
+
+				if (calcColumnIndexToCsvColumnIndexMapping) {
+					outColumnIndexToCsvColumnIndexMapping.push(currRowColumnIndexToCsvColumnIndexMapping);
+					currRowColumnIndexToCsvColumnIndexMapping = [];
+				}
+				currentRowStartIndex = cursor;
 
 				if (firstQuoteInformationRowFound === false) {
 
@@ -2036,7 +2045,7 @@ changelog: (latest first)
 			 */
 			function addColumnIndexMapping(cumulativeColumnIndex) {
 				if (calcColumnIndexToCsvColumnIndexMapping) {
-					outColumnIndexToCsvColumnIndexMapping.push(cumulativeColumnIndex);
+					currRowColumnIndexToCsvColumnIndexMapping.push(cumulativeColumnIndex - currentRowStartIndex);
 				}
 			}
 
