@@ -1,6 +1,8 @@
 
 Changes are described in `papaparse.js`
 
+the main branch is `fix609_main`
+
 ---
 
 Parse CSV with JavaScript
