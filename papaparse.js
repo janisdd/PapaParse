@@ -13,6 +13,11 @@ you need to manually compress it, e.g. with https://javascript-minifier.com/
 
 changelog: (latest first)
 
+- added config options:
+  - `calcLineIndexToCsvLineIndexMapping: bool` and `calcColumnIndexToCsvColumnIndexMapping: bool`
+  - if set to true, the result will contain `outLineIndexToCsvLineIndexMapping` and `outColumnIndexToCsvColumnIndexMapping`
+    - outLineIndexToCsvLineIndexMapping: for every line in the input text the csv line it refers to
+    - outColumnIndexToCsvColumnIndexMapping: the end string indices for every csv field in the first csv row (only the first line is used)
 - fixed and issue where multi-character delimiter won't work
 - added option `quoteEmptyOrNullFields` (defaults to false) to unparse which defines how null, undefined and empty strings are quoted
 - fixes issue where all fields quoted and missing closing quote on last field will hang the function guessDelimiter
@@ -1200,6 +1205,10 @@ changelog: (latest first)
 			_input = '';
 		};
 
+		/**
+		 * @param s {Array<string>}
+		 * @return {boolean}
+		 */
 		function testEmptyLine(s) {
 			return _config.skipEmptyLines === 'greedy' ? s.join('').trim() === '' : s.length === 1 && s[0].length === 0;
 		}
@@ -1212,11 +1221,89 @@ changelog: (latest first)
 				_delimiterError = false;
 			}
 
+			// even if skip empty lines is set, we have empty lines here, we filter them out later
+			if (_config.calcLineIndexToCsvLineIndexMapping) {
+			//true: calculate a line mapping from input text to csv lines
+				var outLineIndexToCsvLineIndexMapping = [];
+				var currentCsvLineIndex = 0;
+				var lastRealCsvLineIndex = 0;
+
+				for (var i = 0; i < _results.data.length; i++) {
+					/** @type {Array<String>} */
+					var csvLine = _results.data[i];
+
+					for (var j = 0; j < csvLine.length; j++) {
+						var csvField = csvLine[j];
+
+						//csv line cells might contain new line chars...
+						var newLinesCount = csvField.split(_config.newline).length - 1;
+
+						for (var k = 0; k < newLinesCount; k++) {
+							outLineIndexToCsvLineIndexMapping.push(currentCsvLineIndex);
+						}
+					}
+
+					outLineIndexToCsvLineIndexMapping.push(currentCsvLineIndex);
+
+					//for empty lines we want the next csv line index
+					if (_config.skipEmptyLines && testEmptyLine(csvLine)) {
+						//don't change the index
+					} else {
+						lastRealCsvLineIndex = currentCsvLineIndex;
+						currentCsvLineIndex++;
+					}
+				}
+
+				//there is a special case then the last lines are empty, and we want to skip empty lines
+				//then the csv line index of that last line should be the last csv line (before it would be an invalid index after we filter out the empty lines)
+				//e.g.
+				// before:
+				// 1,2,3  --> 0
+				//			  --> 1
+				//				--> 1
+				// 4,5,6	--> 1
+				// 7,8,9	--> 2
+				//				--> 3
+				//				--> 4
+				//---
+				// after:
+				// 1,2,3  --> 0
+				//			  --> 1
+				//				--> 1
+				// 4,5,6	--> 1
+				// 7,8,9	--> 2
+				//				--> 2 (corrected)
+				//				--> 2 (corrected)
+				if (_results.data.length > 0 && _config.skipEmptyLines) {
+
+					var correctingLineIndexIndex = outLineIndexToCsvLineIndexMapping.length - 1;
+					for (var m = _results.data.length - 1; m >= 0; m--) {
+						var _csvLine = _results.data[m];
+
+						if (testEmptyLine(_csvLine)) {
+							outLineIndexToCsvLineIndexMapping[correctingLineIndexIndex] = lastRealCsvLineIndex;
+							correctingLineIndexIndex--;
+
+						} else {
+							// after we find the first line with content, we can stop
+							break;
+						}
+					}
+				}
+
+				_results.outLineIndexToCsvLineIndexMapping = outLineIndexToCsvLineIndexMapping;
+			}
+
 			if (_config.skipEmptyLines)
 			{
-				for (var i = 0; i < _results.data.length; i++)
-					if (testEmptyLine(_results.data[i]))
-						_results.data.splice(i--, 1);
+				//see https://github.com/mholt/PapaParse/pull/912/files
+				// for (var i = 0; i < _results.data.length; i++)
+				// 	if (testEmptyLine(_results.data[i]))
+				// 		_results.data.splice(i--, 1);
+				_results.data = _results.data.filter(function(d) {
+					return !testEmptyLine(d);
+				});
+
 			}
 
 			if (needsHeaderRow())
@@ -1501,6 +1588,9 @@ changelog: (latest first)
 		//(when need to skip empty & comment rows and during this we might reset columnIsQuoted multiple times)
 		var firstQuoteInformationRowFound = false;
 
+		//true: collect the string indices for every csv field on the first row
+		var calcColumnIndexToCsvColumnIndexMapping = config.calcColumnIndexToCsvColumnIndexMapping
+
 		// Delimiter must be valid
 		if (typeof delim !== 'string'
 			|| Papa.BAD_DELIMITERS.indexOf(delim) > -1)
@@ -1550,6 +1640,12 @@ changelog: (latest first)
 			// Establish starting state
 			cursor = 0;
 			var data = [], errors = [], row = [], lastCursor = 0;
+
+			var outColumnIndexToCsvColumnIndexMapping = null;
+
+			if (calcColumnIndexToCsvColumnIndexMapping) {
+				outColumnIndexToCsvColumnIndexMapping = [];
+			}
 
 
 			if (!input)

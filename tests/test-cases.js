@@ -1841,6 +1841,12 @@ var UNPARSE_TESTS = [
 		expected: '1,2'
 	},
 	{
+		description: "Returns without rows with no content when skipEmptyLines is 'greedy'",
+		input: [[null, ' '], [], ['1', '2']].concat(new Array(500000).fill(['', ''])).concat([['3', '4']]),
+		config: {skipEmptyLines: 'greedy'},
+		expected: '1,2\r\n3,4'
+	},
+	{
 		description: "Returns empty rows when empty rows are passed and skipEmptyLines is false with headers",
 		input: [{a: null, b: ' '}, {}, {a: '1', b: '2'}],
 		config: {skipEmptyLines: false, header: true},
@@ -2370,14 +2376,474 @@ var CUSTOM_TESTS = [
 			var results = Papa.parse('"A","B","C","D"');
 			callback(results.meta.delimiter);
 		}
-	}
+	},
+	//---row mapping tests, fast mode
+	//skip empty lines... is true for extension
+	{
+		description: "Should map line indices to csv line indices (fast mode)",
+		expected: [0,1,2],
+		run: function(callback) {
+			var results = Papa.parse('1,2,3\n4,5,6\n7,8,9', {
+				calcLineIndexToCsvLineIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outLineIndexToCsvLineIndexMapping);
+		}
+	},
+	{
+		description: "Should map line indices to csv line indices trailing new line (fast mode)",
+		expected: [0,1,2,2],
+		run: function(callback) {
+			var results = Papa.parse('1,2,3\n4,5,6\n7,8,9\n', {
+				calcLineIndexToCsvLineIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outLineIndexToCsvLineIndexMapping);
+		}
+	},
+	{
+		description: "Should map line indices to csv line indices empty lines (fast mode)",
+		expected: [0,1,1,2,2],
+		run: function(callback) {
+			var results = Papa.parse('1,2,3\n\n4,5,6\n7,8,9\n', {
+				calcLineIndexToCsvLineIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outLineIndexToCsvLineIndexMapping);
+		}
+	},
+	{
+		description: "Should map line indices to csv line indices empty lines (fast mode)",
+		expected: [0,1,1,2,2,2],
+		run: function(callback) {
+			var results = Papa.parse('1,2,3\n\n4,5,6\n\n7,8,9\n', {
+				calcLineIndexToCsvLineIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outLineIndexToCsvLineIndexMapping);
+		}
+	},
+	{
+		//comments: false, this is because the csv extension uses comments false to output comments as csv lines
+		description: "Should map line indices to csv line indices with comments 1 (fast mode)",
+		expected: [0,1,2,3],
+		run: function(callback) {
+			var results = Papa.parse('#test\n1,2,3\n4,5,6\n7,8,9', {
+				calcLineIndexToCsvLineIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outLineIndexToCsvLineIndexMapping);
+		}
+	},
+	{
+		description: "Should map line indices to csv line indices with comments 2 (fast mode)",
+		expected: [0,1,2,3],
+		run: function(callback) {
+			var results = Papa.parse('1,2,3\n#test\n4,5,6\n7,8,9', {
+				calcLineIndexToCsvLineIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outLineIndexToCsvLineIndexMapping);
+		}
+	},
+	{
+		description: "Should map line indices to csv line indices with comments 3 (fast mode)",
+		expected: [0,1,2,3,4],
+		run: function(callback) {
+			var results = Papa.parse('1,2,3\n#test\n#test2\n4,5,6\n7,8,9', {
+				calcLineIndexToCsvLineIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outLineIndexToCsvLineIndexMapping);
+		}
+	},
+	{
+		description: "Should map line indices to csv line indices with comments trailing (fast mode)",
+		expected: [0,1,2,3,4,5,6],
+		run: function(callback) {
+			var results = Papa.parse('#test\n1,2,3\n#test\n#test2\n4,5,6\n7,8,9\n#end', {
+				calcLineIndexToCsvLineIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outLineIndexToCsvLineIndexMapping);
+		}
+	},
+	{
+		description: "Should map line indices to csv line indices with comments trailing 2 (fast mode)",
+		expected: [0,1,2,3,4,5,6,7],
+		run: function(callback) {
+			var results = Papa.parse('#test\n1,2,3\n#test\n#test2\n4,5,6\n7,8,9\n#end\n#end2', {
+				calcLineIndexToCsvLineIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outLineIndexToCsvLineIndexMapping);
+		}
+	},
+	{
+		description: "Should map line indices to csv line indices with comments trailing 3 (fast mode)",
+		expected: [0,1,2,3,4,5,6,6],
+		run: function(callback) {
+			var results = Papa.parse('#test\n1,2,3\n#test\n#test2\n4,5,6\n7,8,9\n#end\n', {
+				calcLineIndexToCsvLineIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outLineIndexToCsvLineIndexMapping);
+		}
+	},
+	{
+		description: "Should map line indices to csv line indices with comments no data (fast mode)",
+		expected: [0],
+		run: function(callback) {
+			var results = Papa.parse('#test', {
+				calcLineIndexToCsvLineIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outLineIndexToCsvLineIndexMapping);
+		}
+	},
+	//--- normal mode (with quotes)
+	{
+		description: "Should map line indices to csv line indices last cell last char is new line (normal mode)",
+		expected: [0,1,1,2,2,2],
+		run: function(callback) {
+			var results = Papa.parse('1,2,3\n\n4,5,6\n\n7,8,"9\n"', {
+				calcLineIndexToCsvLineIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outLineIndexToCsvLineIndexMapping);
+		}
+	},
+	{
+		description: "Should map line indices to csv line indices last cell last char is new line 2 (normal mode)",
+		expected: [0,1,1,2,2,2,2],
+		run: function(callback) {
+			var results = Papa.parse('1,2,3\n\n4,5,6\n\n7,8,"\n9\n"', {
+				calcLineIndexToCsvLineIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outLineIndexToCsvLineIndexMapping);
+		}
+	},
+	{
+		description: "Should map line indices to csv line indices last cell last char is new line 3 (normal mode)",
+		expected: [0,1,1,2,2,2,2,2],
+		run: function(callback) {
+			var results = Papa.parse('1,2,3\n\n4,5,6\n\n7,"8\n","\n9\n"', {
+				calcLineIndexToCsvLineIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outLineIndexToCsvLineIndexMapping);
+		}
+	},
+	{
+		description: "Should map line indices to csv line 0 (normal mode)",
+		expected: [0,1,2],
+		run: function(callback) {
+			var results = Papa.parse('1,"2",3\n4,5,6\n7,8,9', {
+				calcLineIndexToCsvLineIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outLineIndexToCsvLineIndexMapping);
+		}
+	},
+	{
+		description: "Should map line indices to csv line 1 (normal mode)",
+		expected: [0,1,2,2],
+		run: function(callback) {
+			var results = Papa.parse('1,"2",3\n4,5,6\n7,8,9\n', {
+				calcLineIndexToCsvLineIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outLineIndexToCsvLineIndexMapping);
+		}
+	},
+	{
+		description: "Should map line indices to csv line 2 (normal mode)",
+		expected: [0,1,2],
+		run: function(callback) {
+			var results = Papa.parse('1," 2 ",3\n4,"5",6\n7,8,9', {
+				calcLineIndexToCsvLineIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outLineIndexToCsvLineIndexMapping);
+		}
+	},
+	{
+		description: "Should map line indices to csv line 3 (normal mode)",
+		expected: [0,1,2],
+		run: function(callback) {
+			var results = Papa.parse('1," 2 " ,3\n4,"5",6\n7,8,9', {
+				calcLineIndexToCsvLineIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outLineIndexToCsvLineIndexMapping);
+		}
+	},
+	{
+		description: "Should map line indices to csv line with comments 1 (normal mode)",
+		expected: [0,1,2,3],
+		run: function(callback) {
+			var results = Papa.parse('#test\n1," 2 " ,3\n4,"5",6\n7,8,9', {
+				calcLineIndexToCsvLineIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outLineIndexToCsvLineIndexMapping);
+		}
+	},
+	{
+		description: "Should map line indices to csv line with comments 2 (normal mode)",
+		expected: [0,1,2,3,4],
+		run: function(callback) {
+			var results = Papa.parse('#test\n1," 2 " ,3\n#test\n4,"5",6\n7,8,9', {
+				calcLineIndexToCsvLineIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outLineIndexToCsvLineIndexMapping);
+		}
+	},
+	{
+		description: "Should map line indices to csv line with comments 3 (normal mode)",
+		expected: [0,1,2,3,4],
+		run: function(callback) {
+			var results = Papa.parse('#test\n1," 2#nocomment2 " ,3\n#test\n4,"5",6\n7,8,9', {
+				calcLineIndexToCsvLineIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outLineIndexToCsvLineIndexMapping);
+		}
+	},
+	{
+		description: "Should map line indices to csv line with new line fields (normal mode)",
+		expected: [0,0,1,2],
+		run: function(callback) {
+			var results = Papa.parse('1,"2\n2",3\n4,"5",6\n7,8,9', {
+				calcLineIndexToCsvLineIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outLineIndexToCsvLineIndexMapping);
+		}
+	},
+	{
+		description: "Should map line indices to csv line with new line fields 2 (normal mode)",
+		expected: [0,0,0,1,2],
+		run: function(callback) {
+			var results = Papa.parse('1,"2\n2 \n",3\n4,"5",6\n7,8,9', {
+				calcLineIndexToCsvLineIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outLineIndexToCsvLineIndexMapping);
+		}
+	},
+	{
+		description: "Should map line indices to csv line with new line fields 3 (normal mode)",
+		expected: [0,0,0,1,2],
+		run: function(callback) {
+			var results = Papa.parse('1,"2\n2 \n2",3\n4,"5",6\n7,8,9', {
+				calcLineIndexToCsvLineIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outLineIndexToCsvLineIndexMapping);
+		}
+	},
+	{
+		description: "Should map line indices to csv line with new line fields 4 (normal mode)",
+		expected: [0,0,0,1,1,2,2],
+		run: function(callback) {
+			var results = Papa.parse('1,"2\n2 \n2",3\n\n4,"5",6\n7,8,9\n', {
+				calcLineIndexToCsvLineIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outLineIndexToCsvLineIndexMapping);
+		}
+	},
+	{
+		description: "Should map line indices to csv line with new line fields 5 (normal mode)",
+		expected: [0,0,0,1,2],
+		run: function(callback) {
+			var results = Papa.parse('1,"2\n2 \n2 ",3\n4,"5",6\n7,8,9', {
+				calcLineIndexToCsvLineIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outLineIndexToCsvLineIndexMapping);
+		}
+	},
+	{
+		description: "Should map line indices to csv line with new line fields 6 (normal mode)",
+		expected: [0,0,0,1,2],
+		run: function(callback) {
+			var results = Papa.parse('1,"2\n2 \n2 " ,3\n4,"5",6\n7,8,9', {
+				calcLineIndexToCsvLineIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outLineIndexToCsvLineIndexMapping);
+		}
+	},
+	{
+		description: "Should map line indices to csv line with new line fields 7 (normal mode)",
+		expected: [0,0,0,1,1,2],
+		run: function(callback) {
+			var results = Papa.parse('1,"2\n2 \n2",3\n4,"5","6\n6"\n7,8,9', {
+				calcLineIndexToCsvLineIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outLineIndexToCsvLineIndexMapping);
+		}
+	},
+	{
+		description: "Should map line indices to csv line with new line fields 8 (normal mode)",
+		expected: [0,0,0,0,1,1,2],
+		run: function(callback) {
+			var results = Papa.parse('"\n1","2\n2 \n2",3\n4,"5","6\n6"\n7,8,9', {
+				calcLineIndexToCsvLineIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outLineIndexToCsvLineIndexMapping);
+		}
+	},
+	{
+		description: "Should map line indices to csv line with new line fields 9 (normal mode)",
+		expected: [0,0,0,0,1,1,2,2],
+		run: function(callback) {
+			var results = Papa.parse('"\n1","2\n2 \n2",3\n4,"5","6\n6"\n"\n7",8,9', {
+				calcLineIndexToCsvLineIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outLineIndexToCsvLineIndexMapping);
+		}
+	},
+	{
+		description: "Should map line indices to csv line with new line fields 10 (normal mode)",
+		expected: [0,0,0,0,1,1,2,2,2],
+		run: function(callback) {
+			var results = Papa.parse('"\n1","2\n2 \n2",3\n4,"5","6\n6"\n"\n7",8,"9\n"', {
+				calcLineIndexToCsvLineIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outLineIndexToCsvLineIndexMapping);
+		}
+	},
+	{
+		description: "Should map line indices to csv line with new line fields and comments 1 (normal mode)",
+		expected: [0,1,1,1,2,2,3],
+		run: function(callback) {
+			var results = Papa.parse('#comment\n1,"2\n2 \n2",3\n4,"5","6\n6"\n7,8,9', {
+				calcLineIndexToCsvLineIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outLineIndexToCsvLineIndexMapping);
+		}
+	},
+	{
+		description: "Should map line indices to csv line with new line fields and comments 2 (normal mode)",
+		expected: [0,1,1,1,2,2,3,4],
+		run: function(callback) {
+			var results = Papa.parse('#comment\n1,"2\n2 \n2",3\n4,"5","6\n6"\n#comment\n7,8,9', {
+				calcLineIndexToCsvLineIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outLineIndexToCsvLineIndexMapping);
+		}
+	},
+	{
+		description: "Should map line indices to csv line with new line fields and comments 3 (normal mode)",
+		expected: [0,1,1,1,2,2,3,4,5],
+		run: function(callback) {
+			var results = Papa.parse('#comment\n"1","2\n2 \n2","#comment 3"\n4,"5","6\n6"\n#comment\n#comment\n7,8,9', {
+				calcLineIndexToCsvLineIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outLineIndexToCsvLineIndexMapping);
+		}
+	},
+	{
+		description: "Should map line indices to csv line with new line fields and comments 4 (normal mode)",
+		expected: [0,1,1,1,1,2,2,3,4,5],
+		run: function(callback) {
+			var results = Papa.parse('#comment\n\n"1","2\n2 \n2",3\n4,"5","6\n6"\n#comment\n#comment\n7,8,9', {
+				calcLineIndexToCsvLineIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outLineIndexToCsvLineIndexMapping);
+		}
+	},
+
 ];
 
 describe('Custom Tests', function() {
 	function generateTest(test) {
 		(test.disabled ? it.skip : it)(test.description, function(done) {
 			test.run(function(actual) {
-				assert.deepEqual(JSON.stringify(actual), JSON.stringify(test.expected));
+				assert.deepEqual(JSON.stringify(actual), JSON.stringify(test.expected), test.description);
 				done();
 			});
 		});
