@@ -1,10 +1,9 @@
 /* @license
 Papa Parse
-v5.0.0
+v5.0.0-custom-1.0.0
 https://github.com/mholt/PapaParse
 License: MIT
 commit: 49170b76b382317356c2f707e2e4191430b8d495
-comment: we need this to support custom comment handling...
 */
 /*
 
@@ -13,6 +12,7 @@ you need to manually compress it, e.g. with https://javascript-minifier.com/
 
 changelog: (latest first)
 
+- started to track versions with `-custom-1.0.0` suffix
 - added config options:
   - `calcLineIndexToCsvLineIndexMapping: bool` and `calcColumnIndexToCsvColumnIndexMapping: bool`
   - if set to true, the result will contain `outLineIndexToCsvLineIndexMapping` and `outColumnIndexToCsvColumnIndexMapping`
