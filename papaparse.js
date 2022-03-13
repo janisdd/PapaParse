@@ -1,9 +1,10 @@
 /* @license
 Papa Parse
-v5.0.0-custom-1.0.0
+v5.0.0-custom-1.0.1
 https://github.com/mholt/PapaParse
 License: MIT
 commit: 49170b76b382317356c2f707e2e4191430b8d495
+fork -> https://github.com/janisdd/PapaParse/tree/fix609_main
 */
 /*
 
@@ -17,7 +18,7 @@ changelog: (latest first)
   - `calcLineIndexToCsvLineIndexMapping: bool` and `calcColumnIndexToCsvColumnIndexMapping: bool`
   - if set to true, the result will contain `outLineIndexToCsvLineIndexMapping` and `outColumnIndexToCsvColumnIndexMapping`
     - outLineIndexToCsvLineIndexMapping: for every line in the input text the csv line it refers to
-    - outColumnIndexToCsvColumnIndexMapping: the end string indices for every csv field in the first csv row (for every csv row)
+    - outColumnIndexToCsvColumnIndexMapping: the end string indices for every every csv line fields (for every csv row)
 - fixed and issue where multi-character delimiter won't work
 - added option `quoteEmptyOrNullFields` (defaults to false) to unparse which defines how null, undefined and empty strings are quoted
 - fixes issue where all fields quoted and missing closing quote on last field will hang the function guessDelimiter
