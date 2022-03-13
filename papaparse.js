@@ -1589,7 +1589,7 @@ changelog: (latest first)
 		var firstQuoteInformationRowFound = false;
 
 		//true: collect the string indices for every csv field on the first row
-		var calcColumnIndexToCsvColumnIndexMapping = config.calcColumnIndexToCsvColumnIndexMapping
+		var calcColumnIndexToCsvColumnIndexMapping = config.calcColumnIndexToCsvColumnIndexMapping;
 
 		// Delimiter must be valid
 		if (typeof delim !== 'string'
@@ -1641,6 +1641,14 @@ changelog: (latest first)
 			cursor = 0;
 			var data = [], errors = [], row = [], lastCursor = 0;
 
+			//note this is the 0 based string index of the fields
+			//this also includes the separators
+			//e.g. "1,2222,33" --> [1, 6, 8]
+			//because
+			// [0,1] = "1,"
+			// [2,3,4,5,6] = "2222,"
+			// [7,8] = "33"
+			//if we us the indices we should always get the delimiter(end)
 			var outColumnIndexToCsvColumnIndexMapping = null;
 
 			if (calcColumnIndexToCsvColumnIndexMapping) {
@@ -1683,6 +1691,11 @@ changelog: (latest first)
 							columnIsQuoted = Array(_row.length).fill(false);
 						}
 
+						//does not support calcColumnIndexToCsvColumnIndexMapping (too lazy to copy)
+						if (calcColumnIndexToCsvColumnIndexMapping) {
+							throw new Error('calcColumnIndexToCsvColumnIndexMapping not supported with stepping function');
+						}
+
 						pushRow(_row);
 						doStep();
 						if (aborted)
@@ -1694,6 +1707,25 @@ changelog: (latest first)
 						if (retainQuoteInformation && firstQuoteInformationRowFound === false) {
 							//in fast mode there are no quote characters...
 							columnIsQuoted = Array(_row.length).fill(false);
+						}
+
+						if (calcColumnIndexToCsvColumnIndexMapping) {
+							if (isCommentRow) {
+								//only one string in the row
+								outColumnIndexToCsvColumnIndexMapping.push(row.length - 1); //-1 to get 0 based index
+							} else {
+								//we have only delimiters...
+								var _cummulativeLength = 0;
+								// eslint-disable-next-line no-loop-func
+								_row.forEach(function(value, index) {
+									if (index !== _row.length - 1) {
+										_cummulativeLength += value.length + delimLen;
+									} else {
+										_cummulativeLength += value.length;
+									}
+									outColumnIndexToCsvColumnIndexMapping.push(_cummulativeLength - 1); //-1 to get 0 based index
+								});
+							}
 						}
 
 						pushRow(_row);
@@ -1714,6 +1746,8 @@ changelog: (latest first)
 			var quoteSearch = input.indexOf(quoteChar, cursor);
 			//we don't use fast mode so we assume some field is quoted...
 			columnIsQuoted = [];
+
+			var currentFieldEndIndex = -1;
 
 			//if the text does not contain the delimiter (not even in quoted fields) we can return early
 			if (isGuessingDelimiter && nextDelim === -1 && cursor === 0) {
@@ -1759,6 +1793,13 @@ changelog: (latest first)
 									index: cursor
 								});
 							}
+
+							if (nextNewline === -1) {
+								addColumnIndexMapping(inputLen - 1);
+							} else {
+								addColumnIndexMapping(nextNewline - 1);
+							}
+
 							return finish();
 						}
 
@@ -1766,6 +1807,8 @@ changelog: (latest first)
 						if (quoteSearch === inputLen - 1)
 						{
 							var value = input.substring(cursor, quoteSearch).replace(quoteCharRegex, quoteChar);
+							currentFieldEndIndex = quoteSearch;
+							addColumnIndexMapping(currentFieldEndIndex);
 							return finish(value);
 						}
 
@@ -1797,6 +1840,9 @@ changelog: (latest first)
 						// Closing quote followed by delimiter or 'unnecessary spaces + delimiter'
 						if (input.substr(quoteSearch + 1 + spacesBetweenQuoteAndDelimiter, delimLen) === delim)
 						{
+							currentFieldEndIndex = quoteSearch + spacesBetweenQuoteAndDelimiter + delimLen;
+							addColumnIndexMapping(currentFieldEndIndex);
+
 							row.push(input.substring(cursor, quoteSearch).replace(quoteCharRegex, quoteChar));
 							cursor = quoteSearch + 1 + spacesBetweenQuoteAndDelimiter + delimLen;
 
@@ -1815,6 +1861,10 @@ changelog: (latest first)
 						// Closing quote followed by newline or 'unnecessary spaces + newLine'
 						if (input.substr(quoteSearch + 1 + spacesBetweenQuoteAndNewLine, newlineLen) === newline)
 						{
+							//special case for mapping because the new line is the row terminator
+							currentFieldEndIndex = quoteSearch + spacesBetweenQuoteAndNewLine;
+							addColumnIndexMapping(currentFieldEndIndex);
+
 							row.push(input.substring(cursor, quoteSearch).replace(quoteCharRegex, quoteChar));
 							saveRow(quoteSearch + 1 + spacesBetweenQuoteAndNewLine + newlineLen);
 							nextDelim = input.indexOf(delim, cursor);	// because we may have skipped the nextDelim in the quoted field
@@ -1871,10 +1921,18 @@ changelog: (latest first)
 
 					if (nextNewline === -1) {
 						//add the last comment
+
+						// eslint-disable-next-line camelcase
+						currentFieldEndIndex = input.length - 1;
+						addColumnIndexMapping(currentFieldEndIndex);
+
 						row.push(input.substring(cursor));
 						pushRow(row); // is called in finish
 						return returnable();
 					}
+
+					currentFieldEndIndex = nextNewline - 1;
+					addColumnIndexMapping(currentFieldEndIndex);
 
 					row.push(input.substring(cursor, nextNewline));
 					saveRow(nextNewline + newlineLen);
@@ -1894,6 +1952,10 @@ changelog: (latest first)
 						if (nextDelimObj && typeof nextDelimObj.nextDelim !== 'undefined') {
 							nextDelim = nextDelimObj.nextDelim;
 							quoteSearch = nextDelimObj.quoteSearch;
+
+							currentFieldEndIndex = nextDelim;
+							addColumnIndexMapping(currentFieldEndIndex);
+
 							row.push(input.substring(cursor, nextDelim));
 							cursor = nextDelim + delimLen;
 							// we look for next delimiter char
@@ -1901,6 +1963,10 @@ changelog: (latest first)
 							continue;
 						}
 					} else {
+
+						currentFieldEndIndex = nextDelim;
+						addColumnIndexMapping(currentFieldEndIndex);
+
 						row.push(input.substring(cursor, nextDelim));
 						cursor = nextDelim + delimLen;
 						nextDelim = input.indexOf(delim, cursor);
@@ -1911,6 +1977,9 @@ changelog: (latest first)
 				// End of row
 				if (nextNewline !== -1)
 				{
+					currentFieldEndIndex = nextNewline - 1;
+					addColumnIndexMapping(currentFieldEndIndex);
+
 					row.push(input.substring(cursor, nextNewline));
 					saveRow(nextNewline + newlineLen);
 
@@ -1933,6 +2002,8 @@ changelog: (latest first)
 				break;
 			}
 
+			currentFieldEndIndex = input.length - 1;
+			addColumnIndexMapping(currentFieldEndIndex);
 
 			return finish();
 
@@ -1944,6 +2015,7 @@ changelog: (latest first)
 			{
 				data.push(row);
 				lastCursor = cursor;
+				calcColumnIndexToCsvColumnIndexMapping = false; //stop after first row
 
 				if (firstQuoteInformationRowFound === false) {
 
@@ -1955,6 +2027,16 @@ changelog: (latest first)
 					} else {
 						firstQuoteInformationRowFound = true;
 					}
+				}
+			}
+
+			/**
+			 * adds the given index to the column mapping if we still calculate it
+			 * @param cumulativeColumnIndex
+			 */
+			function addColumnIndexMapping(cumulativeColumnIndex) {
+				if (calcColumnIndexToCsvColumnIndexMapping) {
+					outColumnIndexToCsvColumnIndexMapping.push(cumulativeColumnIndex);
 				}
 			}
 
@@ -2009,7 +2091,8 @@ changelog: (latest first)
 			function returnable(stopped, step)
 			{
 				var isStep = step || false;
-				return {
+
+				var result = {
 					data: isStep ? data[0]  : data,
 					errors: errors,
 					meta: {
@@ -2021,6 +2104,13 @@ changelog: (latest first)
 					},
 					columnIsQuoted: columnIsQuoted
 				};
+
+				// use config because we use calcColumnIndexToCsvColumnIndexMapping to notify top
+				if (config.calcColumnIndexToCsvColumnIndexMapping) {
+					result.outColumnIndexToCsvColumnIndexMapping = outColumnIndexToCsvColumnIndexMapping
+				}
+
+				return result;
 			}
 
 			/** Executes the user's step function and resets data & errors. */

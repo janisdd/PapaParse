@@ -1,3 +1,8 @@
+
+Changes are described in `papaparse.js`
+
+---
+
 Parse CSV with JavaScript
 ========================================
 

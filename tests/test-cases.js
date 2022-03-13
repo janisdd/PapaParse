@@ -2836,6 +2836,633 @@ var CUSTOM_TESTS = [
 			callback(results.outLineIndexToCsvLineIndexMapping);
 		}
 	},
+	//--- column mapping, we only use the first line... (1 based, with separator)
+	{
+		description: "Should map column indices to csv column indices (fast mode)",
+		expected: [1,3,4],
+		run: function(callback) {
+			var results = Papa.parse('1,2,3\n4,5,6\n7,8,9', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices 2 (fast mode)",
+		expected: [1,4,5],
+		run: function(callback) {
+			var results = Papa.parse('1,22,3\n4,5,6', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices 3 (fast mode)",
+		expected: [1,4,6],
+		run: function(callback) {
+			var results = Papa.parse('1,22,33\n4,5,6', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices 4 (fast mode)",
+		expected: [0,6,8],
+		run: function(callback) {
+			var results = Papa.parse(',22222,33\n4,5,6', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices comment (fast mode)",
+		expected: [7],
+		run: function(callback) {
+			var results = Papa.parse('#comment\n,22222,33\n4,5,6', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices comment longer (fast mode)",
+		expected: [16],
+		run: function(callback) {
+			var results = Papa.parse('#comment,22222,33\n4,5,6', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices no line break 1 (fast mode)",
+		expected: [1,3,4],
+		run: function(callback) {
+			var results = Papa.parse('1,2,3', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices no line break 2 (fast mode)",
+		expected: [1,3,8],
+		run: function(callback) {
+			var results = Papa.parse('1,2,33333', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices with space around delimiter (fast mode)",
+		expected: [2,4,5],
+		run: function(callback) {
+			var results = Papa.parse('1 ,2,3', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices with space around delimiter 1 (fast mode)",
+		expected: [2,4,5],
+		run: function(callback) {
+			var results = Papa.parse(' 1,2,3', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices with space around delimiter 2 (fast mode)",
+		expected: [3,5,6],
+		run: function(callback) {
+			var results = Papa.parse(' 1 ,2,3', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices with space around delimiter 3 (fast mode)",
+		expected: [3,8,9],
+		run: function(callback) {
+			var results = Papa.parse(' 1 ,   2,3', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices with space around delimiter 4 (fast mode)",
+		expected: [3,8,12],
+		run: function(callback) {
+			var results = Papa.parse(' 1 ,   2,3   ', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices with space around delimiter 4 (fast mode)",
+		expected: [3,8,12],
+		run: function(callback) {
+			var results = Papa.parse(' 1 ,   2,   3', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices with space around delimiter 4 (fast mode)",
+		expected: [3,8,14],
+		run: function(callback) {
+			var results = Papa.parse(' 1 ,   2,   3  ', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	//--- normal mode
+	{
+		description: "Should map column indices to csv column indices (normal mode)",
+		expected: [3,5,6],
+		run: function(callback) {
+			var results = Papa.parse('"1",2,3\n4,5,6', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices 2 (normal mode)",
+		expected: [3,5,6],
+		run: function(callback) {
+			var results = Papa.parse('"1",2,3\n', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices 3 (normal mode)",
+		expected: [1,3,6],
+		run: function(callback) {
+			var results = Papa.parse('1,2,"3"\n', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices 3.1 (normal mode)",
+		expected: [1,3,6],
+		run: function(callback) {
+			var results = Papa.parse('1,2,"3"\n   ', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices 3.2 (normal mode)",
+		expected: [1,3,9],
+		run: function(callback) {
+			var results = Papa.parse('1,2,"3"   \n ', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices 4 (normal mode)",
+		expected: [3,5,8],
+		run: function(callback) {
+			var results = Papa.parse('"1",2,"3"\n', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices with new lines in field (normal mode)",
+		expected: [4,6,9],
+		run: function(callback) {
+			var results = Papa.parse('"1\n",2,"3"\n', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices with new lines in field 2 (normal mode)",
+		expected: [5,7,10],
+		run: function(callback) {
+			var results = Papa.parse('"1\n\n",2,"3"\n', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices with new lines in field 3 (normal mode)",
+		expected: [5,7,10],
+		run: function(callback) {
+			var results = Papa.parse('"1\n\n",2,"3"', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices with new lines in field 4 (normal mode)",
+		expected: [4],
+		run: function(callback) {
+			var results = Papa.parse('"1\n\n"', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices with new lines in field 5 (normal mode)",
+		expected: [4],
+		run: function(callback) {
+			var results = Papa.parse('"1\n\n"\n', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices with new lines in field 5 (normal mode)",
+		expected: [4],
+		run: function(callback) {
+			var results = Papa.parse('"1\n\n"\n', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices with escaped quotes (normal mode)",
+		expected: [10,12,13],
+		run: function(callback) {
+			var results = Papa.parse('"1 ""1"" ",2,3', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices with escaped quotes 2 (normal mode)",
+		expected: [11,13,14],
+		run: function(callback) {
+			var results = Papa.parse('"1 ""1"" " ,2,3', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices with space around delimiter 1 (normal mode)",
+		expected: [5,7,8],
+		run: function(callback) {
+			var results = Papa.parse('"1"  ,2,3', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices with space around delimiter 2 (normal mode)",
+		expected: [8,12,14],
+		run: function(callback) {
+			var results = Papa.parse('  " 1"  , 2 , 3', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices with space around delimiter 3 (normal mode)",
+		expected: [1,3,6],
+		run: function(callback) {
+			var results = Papa.parse('1,2,"3"', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices with space around delimiter 4 (normal mode)",
+		expected: [1,3,8],
+		run: function(callback) {
+			var results = Papa.parse('1,2,"3"  ', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices with space around delimiter 5 (normal mode)",
+		expected: [1,3,9],
+		run: function(callback) {
+			var results = Papa.parse('1,2,"3 "  ', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices with space around delimiter 5 (normal mode)",
+		expected: [1,3,11],
+		run: function(callback) {
+			var results = Papa.parse('1,2,  "3 "  ', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices with space around delimiter 6 (normal mode)",
+		expected: [1,3,11],
+		run: function(callback) {
+			var results = Papa.parse('1,2,  "3 "  \n', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices with space around delimiter 7 (normal mode)",
+		expected: [1,3,11],
+		run: function(callback) {
+			var results = Papa.parse('1,2,  "3 "  \n   ', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices with space around delimiter and end new line 1 (normal mode)",
+		expected: [1,3,6],
+		run: function(callback) {
+			var results = Papa.parse('1,2,"3"\n', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices with space around delimiter and end new line 2 (normal mode)",
+		expected: [1,3,8],
+		run: function(callback) {
+			var results = Papa.parse('1,2,"3"  \n', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices with space around delimiter and end new line 3 (normal mode)",
+		expected: [1,3,9],
+		run: function(callback) {
+			var results = Papa.parse('1,2,"3 "  \n', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices with space around delimiter and end new line 4 (normal mode)",
+		expected: [1,3,11],
+		run: function(callback) {
+			var results = Papa.parse('1,2,  "3 "  \n', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+
+	{
+		description: "Should map column indices to csv column indices with space around delimiter and end new line 1 and last space (normal mode)",
+		expected: [1,3,6],
+		run: function(callback) {
+			var results = Papa.parse('1,2,"3"\n  ', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices with space around delimiter and end new line 2 and last space (normal mode)",
+		expected: [1,3,8],
+		run: function(callback) {
+			var results = Papa.parse('1,2,"3"  \n  ', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices with space around delimiter and end new line 3 and last space (normal mode)",
+		expected: [1,3,9],
+		run: function(callback) {
+			var results = Papa.parse('1,2,"3 "  \n  ', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices with space around delimiter and end new line 4 and last space (normal mode)",
+		expected: [1,3,11],
+		run: function(callback) {
+			var results = Papa.parse('1,2,  "3 "  \n  ', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices no line break (normal mode)",
+		expected: [3,5,6],
+		run: function(callback) {
+			var results = Papa.parse('"1",2,3', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices no line break 2 (normal mode)",
+		expected: [3,5,8],
+		run: function(callback) {
+			var results = Papa.parse('"1",2,333', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices no line break 3 (normal mode)",
+		expected: [3,5,10],
+		run: function(callback) {
+			var results = Papa.parse('"1",2,"333"', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
 
 ];
 

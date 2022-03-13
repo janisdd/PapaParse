@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Page Title</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<script src="papaparse.js"></script>
+</head>
+<body style="background-color: black;">
+
+<script>
+
+// var myCsvData = `item_id;description
+// my-item-id;One, two, three, four, five.`
+
+// //get the first row only but delimiter might be wrong guessed
+// var firstRowTmp = Papa.parse(myCsvData, {preview:1})
+// //guess the delimiter of the first row
+// var delimiterOfFirstRow =	Papa.parse(firstRowTmp.data+'').meta.delimiter
+// console.log(delimiterOfFirstRow) // ;
+// var parseResult = Papa.parse(myCsvData, {delimiter:delimiterOfFirstRow})
+// console.log(parseResult.data) // [ ["item_id", "description"], ["my-item-id", "One, two, three, four, five."] ]
+
+var myCsvData = `1,2,3
+#werwer
+4,5,6
+#test
+#werwer
+7,8,9`
+
+// var parseResult = Papa.parse(myCsvData, {
+// 	delimiter: ",",
+// 	comments: "#",
+// 	calcLineIndexToCsvLineIndexMapping: true
+// })
+
+// var text = `#test
+// 1,2,3
+// #test
+// #test2
+// 4,5,6
+// 7,8,9
+// #end`
+var text = `1,2,"3"  `//Custom Tests.Should map line indices to csv line indices last cell last char is new line (normal mode)
+
+//TODO make new branch: for every row push search through the row cells and get all new lines to create the line mapping?
+
+var parseResult = Papa.parse(text, {
+	delimiter: ",",
+	comments: false,
+	calcLineIndexToCsvLineIndexMapping: true,
+	calcColumnIndexToCsvColumnIndexMapping: true,
+	skipEmptyLines: true, //should have no effect on row mapping because input files has empty lines
+	rowInsertCommentLines_commentsString: '#'
+})
+
+console.log(text);
+console.log(parseResult);
+console.log(parseResult.data);
+console.log(parseResult.outLineIndexToCsvLineIndexMapping);
+console.log(parseResult.outColumnIndexToCsvColumnIndexMapping);
+
+</script>
+
+</body>
+</html>
