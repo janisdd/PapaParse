@@ -3724,7 +3724,59 @@ var CUSTOM_TESTS = [
 			});
 			callback(results.outColumnIndexToCsvColumnIndexMapping);
 		}
-	}
+	},
+	{
+		description: "Should map column indices to csv column indices last empty (fast mode)",
+		expected: [[0,1,2,2]],
+		run: function(callback) {
+			var results = Papa.parse(',,,', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices last not empty (fast mode)",
+		expected: [[0,1,2,3]],
+		run: function(callback) {
+			var results = Papa.parse(',,,a', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices last empty (normal mode)",
+		expected: [[3,4,5,5]],
+		run: function(callback) {
+			var results = Papa.parse('"a",,,', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
+	{
+		description: "Should map column indices to csv column indices last not empty (normal mode)",
+		expected: [[3,4,5,6]],
+		run: function(callback) {
+			var results = Papa.parse('"a",,,a', {
+				calcColumnIndexToCsvColumnIndexMapping: true,
+				skipEmptyLines: true,
+				comments: false,
+				rowInsertCommentLines_commentsString: "#",
+			});
+			callback(results.outColumnIndexToCsvColumnIndexMapping);
+		}
+	},
 ];
 
 describe('Custom Tests', function() {
