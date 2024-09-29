@@ -176,6 +176,32 @@ var CORE_PARSER_TESTS = [
 		}
 	},
 	{
+		description: "Quoted field with whitespace around quotes, no trailing whitespace",
+		input: 'A, "B",C',
+		expected: {
+			data: [['A', ' "B"', 'C']],
+			errors: []
+		}
+	},
+	{
+		description: "Quoted field with whitespace around quotes, with delimiter",
+		notes: "The quotes here are not immediately adjacent to the delimiter, so this is not a quoted field. Thus the quotes are treated as part of the data",
+		input: 'A, "B,C",D',
+		expected: {
+			data: [['A', ' "B', 'C"', 'D']],
+			errors: []
+		}
+	},
+	{
+		description: "Quoted field with whitespace around quotes, no leading whitespace",
+		input: 'A,"B" ,C',
+		notes: "Trailing space seems to be fine",
+		expected: {
+			data: [['A', 'B', 'C']],
+			errors: []
+		}
+	},
+	{
 		description: "Misplaced quotes in data, not as opening quotes",
 		input: 'A,B "B",C',
 		notes: "The input is technically malformed, but this syntax should not cause an error",
@@ -1955,7 +1981,77 @@ var UNPARSE_TESTS = [
 		input: [{a: 1, b: '2'}, {}, {a: 3, d: 'd', c: 4,}],
 		config: {columns: ['a', 'b', 'c']},
 		expected: 'a,b,c\r\n1,2,\r\n\r\n3,,4'
-	}
+	},
+
+	{
+		description: "Test option quoteLeadingSpace: true is the default",
+		input: [['a', ' a', '  a']],
+		expected: 'a," a","  a"'
+	},
+	{
+		description: "Test option quoteLeadingSpace: true",
+		input: [['a', ' a', '  a']],
+		config: {quoteLeadingSpace: true},
+		expected: 'a," a","  a"'
+	},
+	{
+		description: "Test option quoteLeadingSpace: true",
+		notes: 'This should work without quotes because they are optional if there is no reason to quote the field (e.g. no delimiter or other quotes, new line, ...)',
+		input: [['a', ' a', '  a']],
+		config: {quoteLeadingSpace: false},
+		expected: 'a, a,  a'
+	},
+
+	{
+		description: "Test option quoteTrailingSpace: true is the default",
+		input: [['a', 'a ', 'a  ']],
+		expected: 'a,"a ","a  "'
+	},
+	{
+		description: "Test option quoteTrailingSpace: true",
+		input: [['a', 'a ', 'a  ']],
+		config: {quoteTrailingSpace: true},
+		expected: 'a,"a ","a  "'
+	},
+	{
+		description: "Test option quoteTrailingSpace: false",
+		input: [['a', 'a ', 'a  ']],
+		config: {quoteTrailingSpace: false},
+		expected: 'a,a ,a  '
+	},
+	{
+		description: "Test option quoteLeadingSpace: true, quoteTrailingSpace: true",
+		input: [['a', 'a ', 'a  ', ' a', '  a', ' a ', '  a  ']],
+		config: {quoteLeadingSpace: true, quoteTrailingSpace: true},
+		expected: 'a,"a ","a  "," a","  a"," a ","  a  "'
+	},
+	{
+		description: "Test option quoteLeadingSpace: false, quoteTrailingSpace: false",
+		input: [['a', 'a ', 'a  ', ' a', '  a', ' a ', '  a  ']],
+		config: {quoteLeadingSpace: false, quoteTrailingSpace: false},
+		expected: 'a,a ,a  , a,  a, a ,  a  '
+	},
+
+	{
+		description: "Test option determineFieldHasQuotes, not quote leading & trailing spaces",
+		input: [['a', 'a ', 'a  '], ['a', 'a ', 'a  ']],
+		config: {quoteLeadingSpace: false, quoteTrailingSpace: false, determineFieldHasQuotes: function(content, row, col) {
+			var array = [[true, false, true], [false, true, false]];
+			var cells = array[row];
+			return (cells ? cells : [])[col];
+		}},
+		expected: '"a",a ,"a  "\r\na,"a ",a  '
+	},
+	{
+		description: "Test option determineFieldHasQuotes, defaults to false, not quote leading & trailing spaces",
+		input: [['a', 'a ', 'a  '], ['a', 'a ', 'a  ', ' a ']],
+		config: {quoteLeadingSpace: false, quoteTrailingSpace: false, determineFieldHasQuotes: function(content, row, col) {
+			var array = [[true, false, true]];
+			var cells = array[row];
+			return (cells ? cells : [])[col];
+		}},
+		expected: '"a",a ,"a  "\r\na,a ,a  , a '
+	},
 ];
 
 describe('Unparse Tests', function() {
