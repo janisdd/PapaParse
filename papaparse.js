@@ -52,6 +52,7 @@ changelog: (latest first)
   - if a field contains some special characters, it is quoted, e.g. delimiter, quotes, new line, ...
   - this func can be used to add quotes to fields (but not to remove quotes!) it is OR-ed with the other indicators
 
+- when setting `retainQuoteInformation` to `true`, we now also output `cellIsQuotedInfo` which contains the information if a cell was quoted or not
 */
 
 (function(root, factory)
@@ -1634,6 +1635,7 @@ changelog: (latest first)
 			escapeChar = config.escapeChar;
 		}
 
+		//we normally don't use the comments option but use this as comment character/string
 		// eslint-disable-next-line camelcase
 		var rowInsertCommentLines_commentsString = config.rowInsertCommentLines_commentsString;
 
@@ -1652,6 +1654,11 @@ changelog: (latest first)
 		var retainQuoteInformation = config.retainQuoteInformation;
 		/** @type {boolean[]} */
 		var columnIsQuoted = null;
+
+		//TODO what about comment, empty lines??
+		/** @type {boolean[][]} for each cell the info if it was quoted originally */
+		var cellIsQuotedInfo = [];
+
 		//when we set this to true we got the right quote information
 		//(when need to skip empty & comment rows and during this we might reset columnIsQuoted multiple times)
 		var firstQuoteInformationRowFound = false;
@@ -1808,6 +1815,16 @@ changelog: (latest first)
 						return returnable(true);
 					}
 				}
+
+				if (!isGuessingDelimiter && retainQuoteInformation) {
+					//in fast mode we don't have quotes
+					cellIsQuotedInfo = Array(data.length);
+					for (var rowI = 0; rowI < data.length; rowI++) {
+						var cells = data[rowI];
+						cellIsQuotedInfo[rowI] = Array(cells.length).fill(false);
+					}
+				}
+
 				return returnable();
 			}
 
@@ -1817,6 +1834,8 @@ changelog: (latest first)
 			var quoteSearch = input.indexOf(quoteChar, cursor);
 			//we don't use fast mode so we assume some field is quoted...
 			columnIsQuoted = [];
+			cellIsQuotedInfo = [];
+			var cellIsQuotedInfoRow = [];
 
 			var currentRowStartIndex = 0; //string index used to calculate the relative current field index in the current row
 			var currentFieldEndIndex = -1;
@@ -1835,8 +1854,11 @@ changelog: (latest first)
 					// Start our search for the closing quote where the cursor is
 					quoteSearch = cursor;
 
-					if (retainQuoteInformation && firstQuoteInformationRowFound === false) {
-						columnIsQuoted.push(true);
+					if (retainQuoteInformation) {
+						if (firstQuoteInformationRowFound === false) {
+							columnIsQuoted.push(true);
+						}
+						cellIsQuotedInfoRow.push(true);
 					}
 
 					// Skip the opening quote
@@ -1973,8 +1995,12 @@ changelog: (latest first)
 					continue;
 				}
 
-				if (retainQuoteInformation && firstQuoteInformationRowFound === false) {
-					columnIsQuoted.push(false);
+				if (retainQuoteInformation) {
+					if (firstQuoteInformationRowFound === false) {
+						columnIsQuoted.push(false);
+					}
+
+					cellIsQuotedInfoRow.push(false);
 				}
 
 				// Comment found at start of new line
@@ -2094,6 +2120,11 @@ changelog: (latest first)
 				}
 				currentRowStartIndex = cursor;
 
+				if (retainQuoteInformation) {
+					cellIsQuotedInfo.push(cellIsQuotedInfoRow);
+					cellIsQuotedInfoRow = [];
+				}
+
 				if (firstQuoteInformationRowFound === false) {
 
 					if (row.length === 1 &&
@@ -2179,7 +2210,8 @@ changelog: (latest first)
 						truncated: !!stopped,
 						cursor: lastCursor + (baseIndex || 0)
 					},
-					columnIsQuoted: columnIsQuoted
+					columnIsQuoted: columnIsQuoted,
+					cellIsQuotedInfo: cellIsQuotedInfo,
 				};
 
 				// use config because we use calcColumnIndexToCsvColumnIndexMapping to notify top

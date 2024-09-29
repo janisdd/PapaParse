@@ -3974,3 +3974,119 @@ describe('Custom Tests', function() {
 		generateTest(CUSTOM_TESTS[i]);
 	}
 });
+
+var PRESERVE_QUOTE_INFORMATION_PARSE_TESTS = [
+	{
+		description: "fast mode, no quites, 1 row",
+		input: 'a,b, c',
+		expectedCellQuotes: [[false, false, false]]
+	},
+	{
+		description: "fast mode, no quites, same length, 2 rows",
+		input: 'a,b, c\na,b, c',
+		expectedCellQuotes: [[false, false, false], [false, false, false]]
+	},
+	{
+		description: "fast mode, no quites, different lengths",
+		input: 'a,b, c\na,b\nc',
+		expectedCellQuotes: [[false, false, false], [false, false], [false]]
+	},
+	{
+		description: "fast mode, with comment 1",
+		input: 'a,b, c\n#test\na,b',
+		expectedCellQuotes: [[false, false, false], [false], [false, false]]
+	},
+
+	{
+		description: "normal mode, 1 row",
+		input: 'a,"b",c,"d"',
+		expectedCellQuotes: [[false, true, false, true]]
+	},
+	{
+		description: "normal mode, special case with space",
+		input: 'a,"b", c, "d"',
+		expectedCellQuotes: [[false, true, false, false]]
+	},
+	{
+		description: "normal mode, 2 row",
+		input: 'a,"b",c,"d"\na,b,c',
+		expectedCellQuotes: [[false, true, false, true], [false, false, false]]
+	},
+	{
+		description: "normal mode, 2 row with quotes",
+		input: 'a,"b",c,"d"\na,"b",c',
+		expectedCellQuotes: [[false, true, false, true], [false, true, false]]
+	},
+	{
+		description: "normal mode, 3 row",
+		input: 'a,"b",c,"d"\na,"b",c\na',
+		expectedCellQuotes: [[false, true, false, true], [false, true, false], [false]]
+	},
+	{
+		description: "normal mode, 2 row",
+		input: 'a,"b",c,"d"\na,"b",c\na,"b"',
+		expectedCellQuotes: [[false, true, false, true], [false, true, false], [false, true]]
+	},
+
+	{
+		description: "normal mode, with comment 1",
+		input: 'a,b, c\n#test\na,"b"',
+		expectedCellQuotes: [[false, false, false], [false], [false, true]]
+	},
+	{
+		description: "normal mode, with comment 1, different quote char",
+		input: 'a,b, c\n#test\na,+b+',
+		config: {quoteChar: '+'},
+		expectedCellQuotes: [[false, false, false], [false], [false, true]]
+	},
+	{
+		description: "normal mode, with comment 1, different quote char",
+		input: 'a,b, c\n#test\na,+b+',
+		config: {quoteChar: '+'},
+		expectedCellQuotes: [[false, false, false], [false], [false, true]]
+	},
+	{
+		description: "normal mode, escaped quotes",
+		input: 'a,b,"c""d"',
+		expectedCellQuotes: [[false, false, true]]
+	},
+	{
+		description: "normal mode, with comment 1, escaped quotes",
+		input: 'a,b,"c""d"\n#test\na,"b"\n"c""d"',
+		expectedCellQuotes: [[false, false, true], [false], [false, true], [true]]
+	},
+	{
+		description: "normal mode, empty row is like an empty field with defaults",
+		input: 'a,b,"c""d"\n\na',
+		expectedCellQuotes: [[false, false, true], [false], [false]]
+	},
+	{
+		description: "normal mode, empty row is like an empty field 2",
+		input: 'a,b,"c""d"\n\na',
+		config: {skipEmptyLines: true},
+		expectedCellQuotes: [[false, false, true], [false], [false]]
+	},
+];
+
+describe('Parse PRESERVE QUOTES INFORMATIONTests', function() {
+	function generateTest(test) {
+		(test.disabled ? it.skip : it)(test.description, function() {
+			var actual;
+
+			try {
+				actual = Papa.parse(test.input, {...test.config, retainQuoteInformation: true});
+			} catch (e) {
+				if (e instanceof Error) {
+					throw e;
+				}
+				actual = e;
+			}
+
+			assert.deepEqual(actual.cellIsQuotedInfo, test.expectedCellQuotes);
+		});
+	}
+
+	for (var i = 0; i < PRESERVE_QUOTE_INFORMATION_PARSE_TESTS.length; i++) {
+		generateTest(PRESERVE_QUOTE_INFORMATION_PARSE_TESTS[i]);
+	}
+});
