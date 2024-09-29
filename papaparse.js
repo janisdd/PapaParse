@@ -1,6 +1,6 @@
 /* @license
 Papa Parse
-v5.0.0-custom-1.0.1
+v5.0.0-custom-1.1.0
 https://github.com/mholt/PapaParse
 License: MIT
 commit: 49170b76b382317356c2f707e2e4191430b8d495
@@ -38,6 +38,11 @@ changelog: (latest first)
 	- parse: rowInsertCommentLines_commentsString !== null, left trimmed strings starting with it are treated as comments and are parsed into a row with 1 cell
 	- unparse: rowInsertCommentLines_commentsString !== null, left trimmed strings first cells will be trimmed left and only the first cell will be exported
 
+- fixed issue https://github.com/mholt/PapaParse/issues/1035 (same as https://github.com/janisdd/vscode-edit-csv/issues/167)
+  - also fixes https://github.com/mholt/PapaParse/issues/1068
+  - issue: the escape char was not properly set when only the quoteChar was changed
+  - subsequent issue: do determine if a field must be quoted `BAD_DELIMITERS` was used, which always includes `"` and `Papa.BYTE_ORDER_MARK`
+    - it also didn't check the actual quoteChar
 */
 
 (function(root, factory)
@@ -100,6 +105,7 @@ changelog: (latest first)
 	Papa.UNIT_SEP = String.fromCharCode(31);
 	Papa.BYTE_ORDER_MARK = '\ufeff';
 	Papa.BAD_DELIMITERS = ['\r', '\n', '"', Papa.BYTE_ORDER_MARK];
+	Papa.NEED_QUOTES_CHARS = ['\r', '\n'];
 	Papa.WORKERS_SUPPORTED = !IS_WORKER && !!global.Worker;
 	Papa.NODE_STREAM_INPUT = 1;
 
@@ -397,8 +403,10 @@ changelog: (latest first)
 			if (typeof _config.newline === 'string')
 				_newline = _config.newline;
 
-			if (typeof _config.quoteChar === 'string')
+			if (typeof _config.quoteChar === 'string') {
 				_quoteChar = _config.quoteChar;
+				_escapedQuote = _quoteChar + _quoteChar;
+			}
 
 			if (typeof _config.header === 'boolean')
 				_writeHeader = _config.header;
@@ -534,14 +542,17 @@ changelog: (latest first)
 			if (str.constructor === Date)
 				return JSON.stringify(str).slice(1, 25);
 
-			str = str.toString().replace(quoteCharRegex, _escapedQuote);
+			str = str.toString();
+			var containsQuotes = str.indexOf(_quoteChar) > -1;
+			str = str.replace(quoteCharRegex, _escapedQuote);
 
 			var needsQuotes = (typeof _quotes === 'boolean' && _quotes)
 				|| (Array.isArray(_quotes) && _quotes[col])
-				|| hasAny(str, Papa.BAD_DELIMITERS)
-				|| str.indexOf(_delimiter) > -1
-				|| str.charAt(0) === ' '
-				|| str.charAt(str.length - 1) === ' ';
+				|| hasAny(str, Papa.NEED_QUOTES_CHARS) // new line, \r
+				|| containsQuotes
+				|| str.indexOf(_delimiter) > -1 //delimiter
+				|| str.charAt(0) === ' ' // starts with a space
+				|| str.charAt(str.length - 1) === ' '; // ends with a space
 
 			return needsQuotes ? _quoteChar + str + _quoteChar : str;
 		}

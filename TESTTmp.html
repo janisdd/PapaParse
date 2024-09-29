@@ -44,22 +44,39 @@ var myCsvData = `1,2,3
 // #end`
 var text = `"633","Hanns-\nHeinrich",False`//Custom Tests.Should map line indices to csv line indices last cell last char is new line (normal mode)
 
+// Papa.unparse([['a', 'x"y']], { escapeChar: '"', quoteChar: "@"})
+// console.log(Papa.unparse([['a', 'x"y']], { quoteChar: "@"}))
+
+// console.log(Papa.unparse([['a', 'x"y']], { quoteChar: "\""}))
+
+// console.log(Papa.unparse([['a', 'x+y']], { quoteChar: "+"}))
+console.log(Papa.unparse([['a', 'x"y']], { escapeChar: '"', quoteChar: "@"}))
+
+
+//x+y
+// console.log(Papa.unparse([['a', 'x+y']], { quoteChar: "+"}))
+//a,+x++y+
+// console.log(Papa.parse('a,+x++y+', { quoteChar: "+"}))
+
+// Papa.parse('a,+b++c+', { quoteChar: "+"})
+
+
 //TODO make new branch: for every row push search through the row cells and get all new lines to create the line mapping?
 
-var parseResult = Papa.parse(text, {
-	delimiter: ",",
-	comments: false,
-	calcLineIndexToCsvLineIndexMapping: true,
-	calcColumnIndexToCsvColumnIndexMapping: true,
-	skipEmptyLines: true, //should have no effect on row mapping because input files has empty lines
-	rowInsertCommentLines_commentsString: '#'
-})
+// var parseResult = Papa.parse(text, {
+// 	delimiter: ",",
+// 	comments: false,
+// 	calcLineIndexToCsvLineIndexMapping: true,
+// 	calcColumnIndexToCsvColumnIndexMapping: true,
+// 	skipEmptyLines: true, //should have no effect on row mapping because input files has empty lines
+// 	rowInsertCommentLines_commentsString: '#'
+// })
 
 console.log(text);
-console.log(parseResult);
-console.log(parseResult.data);
-console.log(parseResult.outLineIndexToCsvLineIndexMapping);
-console.log(parseResult.outColumnIndexToCsvColumnIndexMapping);
+// console.log(parseResult);
+// console.log(parseResult.data);
+// console.log(parseResult.outLineIndexToCsvLineIndexMapping);
+// console.log(parseResult.outColumnIndexToCsvColumnIndexMapping);
 
 </script>
 

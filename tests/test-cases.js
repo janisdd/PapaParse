@@ -1304,6 +1304,56 @@ var PARSE_TESTS = [
 		}
 	},
 	{
+		description: "Plus as quote char",
+		input: "a,+b+",
+		config: { quoteChar: "+" },
+		expected: {
+			data: [['a', 'b']],
+			errors: []
+		}
+	},
+	{
+		description: 'Plus as quote char, should also change the escape quotes sequence to +" ',
+		input: 'a,+b++c+',
+		config: { quoteChar: "+" },
+		expected: {
+			data: [['a', 'b+c']],
+			errors: []
+		}
+	},
+	{
+		description: "Custom escape character",
+		notes: "the escape char is prepended to the quotes",
+		input: 'a,"b+"c"',
+		config: { escapeChar: '+' },
+		expected: {
+			data: [['a', 'b"c']],
+			errors: []
+		}
+	},
+	{
+		//see https://github.com/janisdd/vscode-edit-csv/issues/167
+		//and https://github.com/mholt/PapaParse/issues/1035
+		description: "Ignore normal quotes if we have a custom quote character",
+		notes: "here the field contains the escape char but not the quote char. because it does not contain the quote char, it should not be changed",
+		input: 'a,x"y',
+		config: { escapeChar: '"', quoteChar: "@"},
+		expected: {
+			data: [['a', 'x"y']],
+			errors: []
+		}
+	},
+	{
+		description: "Custom escape character and custom quotes",
+		notes: "the escape char is prepended to the quotes",
+		input: 'a,@b+@c@',
+		config: { escapeChar: '+', quoteChar: '@' },
+		expected: {
+			data: [['a', 'b@c']],
+			errors: []
+		}
+	},
+	{
 		description: "Custom escape character in the middle",
 		notes: "Must parse correctly if the backslash sign (\\) is configured as a custom escape character",
 		input: 'a,b,"c\\"d\\"f"',
@@ -1810,6 +1860,41 @@ var UNPARSE_TESTS = [
 		input: [['a,d','b','c']],
 		config: { quoteChar: "'"},
 		expected: "'a,d',b,c"
+	},
+	{
+		description: "Custom quote character (not a quote)",
+		input: [['a,d','b','c']],
+		config: { quoteChar: "@"},
+		expected: "@a,d@,b,c"
+	},
+	{
+		description: "Other quote char but without setting escape char (should be 2x the quote char)",
+		input: [['a', 'x+y']],
+		config: { quoteChar: "+"},
+		expected: 'a,+x++y+'
+	},
+	{
+		//see https://github.com/janisdd/vscode-edit-csv/issues/167
+		//and https://github.com/mholt/PapaParse/issues/1035
+		description: "Ignore normal quotes if we have a custom quote character",
+		notes: "here the field contains the escape char but not the quote char. because it does not contain the quote char, it should not be changed",
+		input: [['a', 'x"y']],
+		config: { escapeChar: '"', quoteChar: "@"},
+		expected: 'a,x"y'
+	},
+	{
+		description: "Custom escape character and custom quotes, contains quotes char",
+		notes: "the escape char is prepended to the quotes. it contains the quote char and thus, must be quoted and the quotes inside must be escaped",
+		input: [['a', 'b@c']],
+		config: { escapeChar: '+', quoteChar: "@"},
+		expected: 'a,@b+@c@'
+	},
+	{
+		description: "Custom escape character and custom quotes, contains quotes char 2x",
+		notes: "the escape char is prepended to the quotes. it contains the quote char and thus, must be quoted and the quotes inside must be escaped",
+		input: [['a', 'b@c@d@e']],
+		config: { escapeChar: '+', quoteChar: "@"},
+		expected: 'a,@b+@c+@d+@e@'
 	},
 	{
 		description: "Don't print header if header:false option specified",
