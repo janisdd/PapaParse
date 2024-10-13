@@ -53,6 +53,7 @@ changelog: (latest first)
   - this func can be used to add quotes to fields (but not to remove quotes!) it is OR-ed with the other indicators
 
 - when setting `retainQuoteInformation` to `true`, we now also output `cellIsQuotedInfo` which contains the information if a cell was quoted or not
+- `cellIsQuotedInfo` now respects `skipEmptyLines` and returns the same amount of rows as the data array
 */
 
 (function(root, factory)
@@ -1369,9 +1370,17 @@ changelog: (latest first)
 				// for (var i = 0; i < _results.data.length; i++)
 				// 	if (testEmptyLine(_results.data[i]))
 				// 		_results.data.splice(i--, 1);
-				_results.data = _results.data.filter(function(d) {
-					return !testEmptyLine(d);
+				var filterData = _results.data.map(function(row) {
+					return !testEmptyLine(row);
+				})
+
+				_results.data = _results.data.filter(function(d, i) {
+					return filterData[i];
 				});
+				_results.cellIsQuotedInfo = _results.cellIsQuotedInfo.filter(function(d, i) {
+					return filterData[i];
+				})
+
 
 			}
 

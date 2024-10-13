@@ -42,7 +42,7 @@ var myCsvData = `1,2,3
 // 4,5,6
 // 7,8,9
 // #end`
-var text = `"633","Hanns-\nHeinrich",False`//Custom Tests.Should map line indices to csv line indices last cell last char is new line (normal mode)
+var text = `"633","Hanns-\nHeinrich",False\n\n\n\na,b,c`//Custom Tests.Should map line indices to csv line indices last cell last char is new line (normal mode)
 
 // Papa.unparse([['a', 'x"y']], { escapeChar: '"', quoteChar: "@"})
 // console.log(Papa.unparse([['a', 'x"y']], { quoteChar: "@"}))
@@ -50,8 +50,16 @@ var text = `"633","Hanns-\nHeinrich",False`//Custom Tests.Should map line indice
 // console.log(Papa.unparse([['a', 'x"y']], { quoteChar: "\""}))
 
 // console.log(Papa.unparse([['a', 'x+y']], { quoteChar: "+"}))
-console.log(Papa.unparse([['a', 'x"y']], { escapeChar: '"', quoteChar: "@"}))
+// console.log(Papa.unparse([['a', ' xy']], { quoteChar: "\""}))
 
+// console.log(
+// 	Papa.unparse([['a', 'a ', 'a  '], ['a', 'a ', 'a  ']], {quoteLeadingSpace: false, quoteTrailingSpace: false, determineFieldHasQuotes: function(content, row, col) {
+// 	return (([[true, false, true]])[row] ?? [])[col];
+// }},)
+// );
+
+// console.log(Papa.parse('a,"b", c, "d"\n"a", b'))
+console.log(Papa.parse('a,b,"c""d"\n\n\n\n\na', {retainQuoteInformation: true, skipEmptyLines: true}))
 
 //x+y
 // console.log(Papa.unparse([['a', 'x+y']], { quoteChar: "+"}))
