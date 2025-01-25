@@ -276,33 +276,34 @@ const unparseConfigUserDefaults: ParseUnparseConfig = {
 }
 
 export class Papa {
-  static RECORD_SEP = String.fromCharCode(30);
-  static UNIT_SEP = String.fromCharCode(31);
-  static BYTE_ORDER_MARK = '\ufeff';
-  static BAD_DELIMITERS = ['\r', '\n', '"', '\ufeff'];
-  static NEED_QUOTES_CHARS = ['\r', '\n'];
-  static DefaultDelimiter = ',';			// Used if not specified and detection fails
-  static DefaultQuoteChar = '"';
-  static DefaultEscapeChar = '"';
+  //TODO const
+  static RECORD_SEP = String.fromCharCode(30)
+  static UNIT_SEP = String.fromCharCode(31)
+  static BYTE_ORDER_MARK = '\ufeff'
+  static BAD_DELIMITERS = ['\r', '\n', '"', '\ufeff']
+  static NEED_QUOTES_CHARS = ['\r', '\n']
+  static DefaultDelimiter = ','			// Used if not specified and detection fails
+  static DefaultQuoteChar = '"'
+  static DefaultEscapeChar = '"'
 
   static parse(input: string, _config: Partial<ParseConfig>) {
-    let _realConfig: ParseConfig = {
+    const _realConfig: ParseConfig = {
       ...parseConfigUserDefaults,
       ..._config
     }
-    let _handle = new ParserHandle(input, _realConfig);
-    let results = _handle.parse(input);
+    const _handle = new ParserHandle(input, _realConfig)
+    const results = _handle.parse(input)
     return results
   }
 
   static unparse(data: string[][], _config: ParseUnparseConfig) {
-    let _realConfig: ParseUnparseConfig = {
+    const _realConfig: ParseUnparseConfig = {
       ...unparseConfigUserDefaults,
       ..._config
     }
 
     const unparser = new UnParser(data, _realConfig)
-    let csv = unparser.unparse()
+    const csv = unparser.unparse()
     return csv
   }
 
@@ -310,13 +311,16 @@ export class Papa {
 
 /** https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions */
 function escapeRegExp(string: string): string {
-  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // $& means the whole matched string
 }
 
 class ParserHandle {
   _effectiveConfig: ParseConfigEffective
+
   _delimiterError: boolean
+
   _errors: ParseError[] = []
+
   _isGreedySkipEmptyLines: boolean
 
   constructor(public input: string, _config: ParseConfig) {
@@ -324,29 +328,29 @@ class ParserHandle {
     let newLine = _config.newline
 
     if (!newLine) {
-      newLine = this._guessLineEndings(input, _config.quoteChar);
+      newLine = this._guessLineEndings(input, _config.quoteChar)
     }
 
-    let comments = _config.comments ?? ''
+    const comments = _config.comments ?? ''
 
-    this._delimiterError = false;
+    this._delimiterError = false
     let usedDelimiter = _config.delimiter
 
     if (!_config.delimiter) {
-      let skipEmptyLines = _config.skipEmptyLines === 'greedy' || _config.skipEmptyLines;
-      let delimGuess = this._guessDelimiter(
+      const skipEmptyLines = _config.skipEmptyLines === 'greedy' || _config.skipEmptyLines
+      const delimGuess = this._guessDelimiter(
         input,
         newLine,
         skipEmptyLines,
         comments,
         _config.delimitersToGuess
-      );
+      )
 
       if (delimGuess.successful && delimGuess.bestDelimiter) {
-        usedDelimiter = delimGuess.bestDelimiter;
+        usedDelimiter = delimGuess.bestDelimiter
       } else {
-        this._delimiterError = true;	// add error after parsing (otherwise it would be overwritten)
-        usedDelimiter = Papa.DefaultDelimiter;
+        this._delimiterError = true	// add error after parsing (otherwise it would be overwritten)
+        usedDelimiter = Papa.DefaultDelimiter
       }
     }
 
@@ -361,47 +365,47 @@ class ParserHandle {
   }
 
   parse(input: string) {
-    let _parser = new Parser(input, this._effectiveConfig, false);
-    let result = _parser.parse(input);
-    this._processResults(result, this._delimiterError);
+    const _parser = new Parser(input, this._effectiveConfig, false)
+    const result = _parser.parse(input)
+    this._processResults(result, this._delimiterError)
     return result
   }
 
   _processResults(result: ParseParseResult, hasDelimiterError: boolean) {
     if (result && hasDelimiterError) {
-      this._addError('Delimiter', 'UndetectableDelimiter', 'Unable to auto-detect delimiting character; defaulted to \'' + Papa.DefaultDelimiter + '\'');
+      this._addError('Delimiter', 'UndetectableDelimiter', 'Unable to auto-detect delimiting character; defaulted to \'' + Papa.DefaultDelimiter + '\'')
     }
 
     // even if skip empty lines is set, we have empty lines here, we filter them out later
     if (this._effectiveConfig.calcLineIndexToCsvLineIndexMapping) {
       //true: calculate a line mapping from input text to csv lines
-      var outLineIndexToCsvLineIndexMapping = [];
-      var currentCsvLineIndex = 0;
-      var lastRealCsvLineIndex = 0;
+      const outLineIndexToCsvLineIndexMapping = []
+      let currentCsvLineIndex = 0
+      let lastRealCsvLineIndex = 0
 
-      for (var i = 0; i < result.data.length; i++) {
+      for (let i = 0; i < result.data.length; i++) {
         /** @type {Array<String>} */
-        var csvLine = result.data[i];
+        const csvLine = result.data[i]
 
-        for (var j = 0; j < csvLine.length; j++) {
-          var csvField = csvLine[j];
+        for (let j = 0; j < csvLine.length; j++) {
+          const csvField = csvLine[j]
 
           //csv line cells might contain new line chars...
-          var newLinesCount = csvField.split(this._effectiveConfig.newline).length - 1;
+          const newLinesCount = csvField.split(this._effectiveConfig.newline).length - 1
 
-          for (var k = 0; k < newLinesCount; k++) {
-            outLineIndexToCsvLineIndexMapping.push(currentCsvLineIndex);
+          for (let k = 0; k < newLinesCount; k++) {
+            outLineIndexToCsvLineIndexMapping.push(currentCsvLineIndex)
           }
         }
 
-        outLineIndexToCsvLineIndexMapping.push(currentCsvLineIndex);
+        outLineIndexToCsvLineIndexMapping.push(currentCsvLineIndex)
 
         //for empty lines we want the next csv line index
         if (this._effectiveConfig.skipEmptyLines && this._testEmptyLine(csvLine, this._isGreedySkipEmptyLines)) {
           //don't change the index
         } else {
-          lastRealCsvLineIndex = currentCsvLineIndex;
-          currentCsvLineIndex++;
+          lastRealCsvLineIndex = currentCsvLineIndex
+          currentCsvLineIndex++
         }
       }
 
@@ -427,22 +431,22 @@ class ParserHandle {
       //				--> 2 (corrected)
       if (result.data.length > 0 && this._effectiveConfig.skipEmptyLines) {
 
-        var correctingLineIndexIndex = outLineIndexToCsvLineIndexMapping.length - 1;
-        for (var m = result.data.length - 1; m >= 0; m--) {
-          var _csvLine = result.data[m];
+        let correctingLineIndexIndex = outLineIndexToCsvLineIndexMapping.length - 1
+        for (let m = result.data.length - 1; m >= 0; m--) {
+          const _csvLine = result.data[m]
 
           if (this._testEmptyLine(_csvLine, this._isGreedySkipEmptyLines)) {
-            outLineIndexToCsvLineIndexMapping[correctingLineIndexIndex] = lastRealCsvLineIndex;
-            correctingLineIndexIndex--;
+            outLineIndexToCsvLineIndexMapping[correctingLineIndexIndex] = lastRealCsvLineIndex
+            correctingLineIndexIndex--
 
           } else {
             // after we find the first line with content, we can stop
-            break;
+            break
           }
         }
       }
 
-      result.meta.outLineIndexToCsvLineIndexMapping = outLineIndexToCsvLineIndexMapping;
+      result.meta.outLineIndexToCsvLineIndexMapping = outLineIndexToCsvLineIndexMapping
     }
 
     if (this._effectiveConfig.skipEmptyLines) {
@@ -450,18 +454,12 @@ class ParserHandle {
       // for (var i = 0; i < _results.data.length; i++)
       // 	if (testEmptyLine(_results.data[i]))
       // 		_results.data.splice(i--, 1);
-      var filterData = result.data.map((row) => {
-        return !this._testEmptyLine(row, this._isGreedySkipEmptyLines);
-      })
+      const filterData = result.data.map((row) => !this._testEmptyLine(row, this._isGreedySkipEmptyLines))
 
-      result.data = result.data.filter(function (d, i) {
-        return filterData[i];
-      });
+      result.data = result.data.filter((d, i) => filterData[i])
 
       if (result.meta.cellIsQuotedInfo) {
-        result.meta.cellIsQuotedInfo = result.meta.cellIsQuotedInfo.filter(function (d, i) {
-          return filterData[i];
-        })
+        result.meta.cellIsQuotedInfo = result.meta.cellIsQuotedInfo.filter((d, i) => filterData[i])
       }
 
 
@@ -472,13 +470,13 @@ class ParserHandle {
     let bestDelim: string | null = null
     let bestDelta: number | null = null
     let maxFieldCount: number | null = null
-    let fieldCountPrevRow: number | null = null
-
 
     for (let i = 0; i < delimitersToGuess.length; i++) {
-      let delim = delimitersToGuess[i];
-      let delta = 0, avgFieldCount = 0, emptyLinesCount = 0;
-      fieldCountPrevRow = null;
+      const delim = delimitersToGuess[i]
+      let delta = 0
+      let avgFieldCount = 0
+      let emptyLinesCount = 0
+      let fieldCountPrevRow: number | null = null
 
       const configForGuessing: ParseConfigEffective = {
         ...this._effectiveConfig,
@@ -491,73 +489,71 @@ class ParserHandle {
         retainQuoteInformation: false,
       }
 
-      let parserForGuessing = new Parser(input, configForGuessing, true)
-      let preview = parserForGuessing.parse(input);
+      const parserForGuessing = new Parser(input, configForGuessing, true)
+      const preview = parserForGuessing.parse(input)
 
       for (let j = 0; j < preview.data.length; j++) {
         if (skipEmptyLines && this._testEmptyLine(preview.data[j], this._isGreedySkipEmptyLines)) {
-          emptyLinesCount++;
-          continue;
+          emptyLinesCount++
+          continue
         }
-        let fieldCount = preview.data[j].length;
-        avgFieldCount += fieldCount;
+        const fieldCount = preview.data[j].length
+        avgFieldCount += fieldCount
 
         if (fieldCountPrevRow === null) {
-          fieldCountPrevRow = fieldCount;
-          continue;
+          fieldCountPrevRow = fieldCount
+          continue
         } else if (fieldCount > 0) {
-          delta += Math.abs(fieldCount - fieldCountPrevRow);
-          fieldCountPrevRow = fieldCount;
+          delta += Math.abs(fieldCount - fieldCountPrevRow)
+          fieldCountPrevRow = fieldCount
         }
       }
 
       if (preview.data.length > 0) {
-        avgFieldCount /= (preview.data.length - emptyLinesCount);
+        avgFieldCount /= (preview.data.length - emptyLinesCount)
       }
 
       if ((bestDelta === null || delta <= bestDelta)
         && (maxFieldCount === null || avgFieldCount > maxFieldCount) && avgFieldCount > 1.99) {
-        bestDelta = delta;
-        bestDelim = delim;
-        maxFieldCount = avgFieldCount;
+        bestDelta = delta
+        bestDelim = delim
+        maxFieldCount = avgFieldCount
       }
     }
 
     return {
       successful: bestDelim !== null,
       bestDelimiter: bestDelim
-    };
+    }
   }
 
   //this does not play nice with unmatched quotes on the last field (because all new lines are removed by the regex)
   //the regex works but maybe it should be ([^*]*?)?
   _guessLineEndings(input: string, quoteChar: string) {
 
-    input = input.substr(0, 1024 * 1024);	// max length 1 MB
+    input = input.substr(0, 1024 * 1024)	// max length 1 MB
     // Replace all the text inside quotes
-    let re = new RegExp(escapeRegExp(quoteChar) + '([^]*?)' + escapeRegExp(quoteChar), 'gm');
-    input = input.replace(re, '');
+    const re = new RegExp(escapeRegExp(quoteChar) + '([^]*?)' + escapeRegExp(quoteChar), 'gm')
+    input = input.replace(re, '')
 
-    let r = input.split('\r');
-
-    let n = input.split('\n');
-
-    let nAppearsFirst = (n.length > 1 && n[0].length < r[0].length);
+    const r = input.split('\r')
+    const n = input.split('\n')
+    const nAppearsFirst = (n.length > 1 && n[0].length < r[0].length)
 
     if (r.length === 1 || nAppearsFirst) {
-      return '\n';
+      return '\n'
     }
 
-    let numWithN = 0;
+    let numWithN = 0
     for (let i = 0; i < r.length; i++) {
       if (r[i][0] === '\n') {
-        numWithN++;
+        numWithN++
       }
     }
 
     return numWithN >= r.length / 2
            ? '\r\n'
-           : '\r';
+           : '\r'
   }
 
   _addError(type: string, code: string, msg: string, row?: number) {
@@ -566,7 +562,7 @@ class ParserHandle {
       code: code,
       message: msg,
       row: row
-    });
+    })
   }
 
   /**
@@ -575,7 +571,7 @@ class ParserHandle {
   _testEmptyLine(line: string[], greedy: boolean): boolean {
     return greedy
            ? line.join('').trim() === ''
-           : line.length === 1 && line[0].length === 0;
+           : line.length === 1 && line[0].length === 0
   }
 
 }
@@ -583,19 +579,33 @@ class ParserHandle {
 
 class Parser {
   _config: ParseConfigEffective
+
   _input: string
+
   _quoteSearch: number
+
   _nextNewline: number
+
   _cursor: number
+
   _lastCursor: number
+
   _data: string[][]
+
   _row: string[]
+
   _errors: ParseError[]
+
   _delim: string
+
   _quoteChar: string
+
   _newlineString: string
+
   _inputLen: number
+
   _escapeChar: string
+
   _previewInRows: number
 
   //when we set this to true we got the right quote information
@@ -605,6 +615,7 @@ class Parser {
   _maxGuessLength: number
 
   _isGuessingDelimiter: boolean
+
   /**
    * normally when parsing quotes are discarded as they don't change the retrieved data
    * true: quote information are returned as part of the parse result, for each column:
@@ -621,14 +632,17 @@ class Parser {
 
   //string index used to calculate the relative current field index in the current row
   _currentRowStartIndex: number
+
   _comments: string
 
   _rowInsertCommentLines_commentsString: string | null
 
   _columnIsQuoted: boolean[]
+
   //TODO what about comment, empty lines??
   /** @type {boolean[][]} for each cell the info if it was quoted originally */
   _cellIsQuotedInfo: boolean[][]
+
   //note this is the 0 based string index of the fields
   //this also includes the separators
   //e.g. "1,2222,33" --> [1, 6, 8]
@@ -640,6 +654,7 @@ class Parser {
   //can be -1 if the field is empty (because we don't skip empty lines before post-processing)(e.g. when the last line is \n)
   //this is because the out csv line mapping includes entries for the text file lines
   _outColumnIndexToCsvColumnIndexMapping: number[][] | null
+
   _currRowColumnIndexToCsvColumnIndexMapping: number[]
 
   _cellIsQuotedInfoRow: boolean[]
@@ -684,130 +699,130 @@ class Parser {
     //some checks
 
     if (!this._quoteChar) {
-      this._quoteChar = Papa.DefaultQuoteChar;
+      this._quoteChar = Papa.DefaultQuoteChar
     }
 
     if (!this._escapeChar) {
-      this._escapeChar = Papa.DefaultEscapeChar;
+      this._escapeChar = Papa.DefaultEscapeChar
     }
 
     // Delimiter must be valid
     if (Papa.BAD_DELIMITERS.indexOf(this._delim) > -1) {
-      this._delim = Papa.DefaultDelimiter;
+      this._delim = Papa.DefaultDelimiter
     }
 
     // Comment character must be valid
     if (this._comments === this._delim) {
-      throw new Error('Comment character same as delimiter');
+      throw new Error('Comment character same as delimiter')
     } else if (Papa.BAD_DELIMITERS.indexOf(this._comments) > -1) {
       this._comments = ''
     }
 
     // Newline must be valid: \r, \n, or \r\n
     if (this._newlineString !== '\n' && this._newlineString !== '\r' && this._newlineString !== '\r\n') {
-      this._newlineString = '\n';
+      this._newlineString = '\n'
     }
 
   }
 
   parse(input: string): ParseParseResult {
-    let _config = this._config
+    const _config = this._config
     // We don't need to compute some of these every time parse() is called,
     // but having them in a more local scope seems to perform better
-    var delimLen = _config.delimiter.length,
-      newlineLen = _config.newline.length,
-      commentsLen = _config.comments.length;
+    const delimLen = _config.delimiter.length
+    const newlineLen = _config.newline.length
+    const commentsLen = _config.comments.length
 
     if (!input) {
-      return this.returnable();
+      return this.returnable()
     }
 
     if (input.indexOf(this._quoteChar) === -1) {
 
-      let rows = input.split(this._newlineString);
+      const rows = input.split(this._newlineString)
       let row = ''
 
-      for (var i = 0; i < rows.length; i++) {
-        row = rows[i];
+      for (let i = 0; i < rows.length; i++) {
+        row = rows[i]
 
         //we could trim left here but this would not be compatible with not fast mode...
-        let isCommentRow = this._rowInsertCommentLines_commentsString && row.startsWith(this._rowInsertCommentLines_commentsString);
-        let _row = null;
+        const isCommentRow = this._rowInsertCommentLines_commentsString && row.startsWith(this._rowInsertCommentLines_commentsString)
+        let _row = null
 
         //although we know that there are no quotes (--> columnIsQuoted must be all false entries...)
         //but we want/need to set the right length for the quote array (first real row)
 
-        this._cursor += row.length;
+        this._cursor += row.length
         if (i !== rows.length - 1) {
-          this._cursor += this._newlineString.length;
+          this._cursor += this._newlineString.length
         }
         if (this._comments && row.substr(0, commentsLen) === this._comments) {
-          continue;
+          continue
         }
 
         _row = !isCommentRow
                ? row.split(this._delim)
-               : [row];
+               : [row]
 
         if (this._retainQuoteInformation && this._firstQuoteInformationRowFound === false) {
           //in fast mode there are no quote characters...
-          this._columnIsQuoted = Array(_row.length).fill(false);
+          this._columnIsQuoted = Array(_row.length).fill(false)
         }
 
         if (this._outColumnIndexToCsvColumnIndexMapping) {
           if (isCommentRow) {
             //only one string in the row
-            this._currRowColumnIndexToCsvColumnIndexMapping.push(row.length - 1); //-1 to get 0 based index
+            this._currRowColumnIndexToCsvColumnIndexMapping.push(row.length - 1) //-1 to get 0 based index
           } else {
             //we have only delimiters...
-            var _cummulativeLength = 0;
+            let _cummulativeLength = 0
             // eslint-disable-next-line no-loop-func
             _row.forEach((value, index) => {
               if (index !== _row.length - 1) {
-                _cummulativeLength += value.length + delimLen;
+                _cummulativeLength += value.length + delimLen
               } else {
-                _cummulativeLength += value.length;
+                _cummulativeLength += value.length
               }
-              this._currRowColumnIndexToCsvColumnIndexMapping.push(_cummulativeLength - 1); //-1 to get 0 based index
-            });
+              this._currRowColumnIndexToCsvColumnIndexMapping.push(_cummulativeLength - 1) //-1 to get 0 based index
+            })
           }
         }
 
-        this.pushRow(_row);
+        this.pushRow(_row)
 
 
         if (this._previewInRows && i >= this._previewInRows) {
-          this._data = this._data.slice(0, this._previewInRows);
-          return this.returnable();
+          this._data = this._data.slice(0, this._previewInRows)
+          return this.returnable()
         }
       }
 
       if (!this._isGuessingDelimiter && this._retainQuoteInformation) {
         //in fast mode we don't have quotes
-        this._cellIsQuotedInfo = Array(this._data.length);
-        for (var rowI = 0; rowI < this._data.length; rowI++) {
-          var cells = this._data[rowI];
-          this._cellIsQuotedInfo[rowI] = Array(cells.length).fill(false);
+        this._cellIsQuotedInfo = Array(this._data.length)
+        for (let rowI = 0; rowI < this._data.length; rowI++) {
+          const cells = this._data[rowI]
+          this._cellIsQuotedInfo[rowI] = Array(cells.length).fill(false)
         }
       }
 
-      return this.returnable();
+      return this.returnable()
     }
 
-    let nextDelim = input.indexOf(this._delim, this._cursor);
-    this._nextNewline = input.indexOf(this._newlineString, this._cursor);
-    let quoteCharRegex = new RegExp(escapeRegExp(this._escapeChar) + escapeRegExp(this._quoteChar), 'g');
-    this._quoteSearch = input.indexOf(this._quoteChar, this._cursor);
+    let nextDelim = input.indexOf(this._delim, this._cursor)
+    this._nextNewline = input.indexOf(this._newlineString, this._cursor)
+    const quoteCharRegex = new RegExp(escapeRegExp(this._escapeChar) + escapeRegExp(this._quoteChar), 'g')
+    this._quoteSearch = input.indexOf(this._quoteChar, this._cursor)
     //we don't use fast mode so we assume some field is quoted...
-    this._columnIsQuoted = [];
-    this._cellIsQuotedInfo = [];
-    this._cellIsQuotedInfoRow = [];
+    this._columnIsQuoted = []
+    this._cellIsQuotedInfo = []
+    this._cellIsQuotedInfoRow = []
 
-    let currentFieldEndIndex = -1;
+    let currentFieldEndIndex = -1
 
     //if the text does not contain the delimiter (not even in quoted fields) we can return early
     if (this._isGuessingDelimiter && nextDelim === -1 && this._cursor === 0) {
-      return this.finish('');
+      return this.finish('')
     }
 
     // Parser loop
@@ -815,117 +830,115 @@ class Parser {
       // Field has opening quote
       if (input[this._cursor] === this._quoteChar) {
         // Start our search for the closing quote where the cursor is
-        this._quoteSearch = this._cursor;
+        this._quoteSearch = this._cursor
 
         if (this._retainQuoteInformation) {
           if (this._firstQuoteInformationRowFound === false) {
-            this._columnIsQuoted.push(true);
+            this._columnIsQuoted.push(true)
           }
-          this._cellIsQuotedInfoRow.push(true);
+          this._cellIsQuotedInfoRow.push(true)
         }
 
         // Skip the opening quote
-        this._cursor++;
+        this._cursor++
 
         for (; ;) {
           // Find closing quote
-          this._quoteSearch = input.indexOf(this._quoteChar, this._quoteSearch + 1);
+          this._quoteSearch = input.indexOf(this._quoteChar, this._quoteSearch + 1)
 
           // we exceeded the max search length for the delimiter, give up
           if (this._isGuessingDelimiter && this._maxGuessLength && this._quoteSearch > this._maxGuessLength) {
-            return this.finish('');
+            return this.finish('')
           }
 
           //No other quotes are found - no other delimiters
           if (this._quoteSearch === -1) {
-            if (true) {
-              // No closing quote... what a pity
-              this._errors.push({
-                type: 'Quotes',
-                code: 'MissingQuotes',
-                message: 'Quoted field unterminated',
-                row: this._data.length,	// row has yet to be inserted
-                index: this._cursor
-              });
-            }
+            // No closing quote... what a pity
+            this._errors.push({
+              type: 'Quotes',
+              code: 'MissingQuotes',
+              message: 'Quoted field unterminated',
+              row: this._data.length,	// row has yet to be inserted
+              index: this._cursor
+            })
 
             if (this._nextNewline === -1) {
-              this.addColumnIndexMapping(this._inputLen - 1);
+              this.addColumnIndexMapping(this._inputLen - 1)
             } else {
-              this.addColumnIndexMapping(this._nextNewline - 1);
+              this.addColumnIndexMapping(this._nextNewline - 1)
             }
 
-            return this.finish();
+            return this.finish()
           }
 
           // Closing quote at EOF
           if (this._quoteSearch === this._inputLen - 1) {
-            var value = input.substring(this._cursor, this._quoteSearch).replace(quoteCharRegex, this._quoteChar);
-            currentFieldEndIndex = this._quoteSearch;
-            this.addColumnIndexMapping(currentFieldEndIndex);
-            return this.finish(value);
+            const value = input.substring(this._cursor, this._quoteSearch).replace(quoteCharRegex, this._quoteChar)
+            currentFieldEndIndex = this._quoteSearch
+            this.addColumnIndexMapping(currentFieldEndIndex)
+            return this.finish(value)
           }
 
           // If this quote is escaped, it's part of the data; skip it
           // If the quote character is the escape character, then check if the next character is the escape character
           if (this._quoteChar === this._escapeChar && input[this._quoteSearch + 1] === this._escapeChar) {
-            this._quoteSearch++;
-            continue;
+            this._quoteSearch++
+            continue
           }
 
           // If the quote character is not the escape character, then check if the previous character was the escape character
           if (this._quoteChar !== this._escapeChar && this._quoteSearch !== 0 && input[this._quoteSearch - 1] === this._escapeChar) {
-            continue;
+            continue
           }
 
           if (nextDelim !== -1 && nextDelim < (this._quoteSearch + 1)) {
-            nextDelim = input.indexOf(this._delim, (this._quoteSearch + 1));
+            nextDelim = input.indexOf(this._delim, (this._quoteSearch + 1))
           }
           if (this._nextNewline !== -1 && this._nextNewline < (this._quoteSearch + 1)) {
-            this._nextNewline = input.indexOf(this._newlineString, (this._quoteSearch + 1));
+            this._nextNewline = input.indexOf(this._newlineString, (this._quoteSearch + 1))
           }
 
           // Check up to nextDelim or nextNewline, whichever is closest
-          var checkUpTo = this._nextNewline === -1
-                          ? nextDelim
-                          : Math.min(nextDelim, this._nextNewline);
-          var spacesBetweenQuoteAndDelimiter = this.extraSpaces(checkUpTo);
+          const checkUpTo = this._nextNewline === -1
+                            ? nextDelim
+                            : Math.min(nextDelim, this._nextNewline)
+          const spacesBetweenQuoteAndDelimiter = this.extraSpaces(checkUpTo)
 
           // Closing quote followed by delimiter or 'unnecessary spaces + delimiter'
           if (input.substr(this._quoteSearch + 1 + spacesBetweenQuoteAndDelimiter, delimLen) === this._delim) {
-            currentFieldEndIndex = this._quoteSearch + spacesBetweenQuoteAndDelimiter + delimLen;
-            this.addColumnIndexMapping(currentFieldEndIndex);
+            currentFieldEndIndex = this._quoteSearch + spacesBetweenQuoteAndDelimiter + delimLen
+            this.addColumnIndexMapping(currentFieldEndIndex)
 
-            this._row.push(input.substring(this._cursor, this._quoteSearch).replace(quoteCharRegex, this._quoteChar));
-            this._cursor = this._quoteSearch + 1 + spacesBetweenQuoteAndDelimiter + delimLen;
+            this._row.push(input.substring(this._cursor, this._quoteSearch).replace(quoteCharRegex, this._quoteChar))
+            this._cursor = this._quoteSearch + 1 + spacesBetweenQuoteAndDelimiter + delimLen
 
             // If char after following delimiter is not quoteChar, we find next quote char position
             if (input[this._quoteSearch + 1 + spacesBetweenQuoteAndDelimiter + delimLen] !== this._quoteChar) {
-              this._quoteSearch = input.indexOf(this._quoteChar, this._cursor);
+              this._quoteSearch = input.indexOf(this._quoteChar, this._cursor)
             }
-            nextDelim = input.indexOf(this._delim, this._cursor);
-            this._nextNewline = input.indexOf(this._newlineString, this._cursor);
-            break;
+            nextDelim = input.indexOf(this._delim, this._cursor)
+            this._nextNewline = input.indexOf(this._newlineString, this._cursor)
+            break
           }
 
-          var spacesBetweenQuoteAndNewLine = this.extraSpaces(this._nextNewline);
+          const spacesBetweenQuoteAndNewLine = this.extraSpaces(this._nextNewline)
 
           // Closing quote followed by newline or 'unnecessary spaces + newLine'
           if (input.substr(this._quoteSearch + 1 + spacesBetweenQuoteAndNewLine, newlineLen) === this._newlineString) {
             //special case for mapping because the new line is the row terminator
-            currentFieldEndIndex = this._quoteSearch + spacesBetweenQuoteAndNewLine;
-            this.addColumnIndexMapping(currentFieldEndIndex);
+            currentFieldEndIndex = this._quoteSearch + spacesBetweenQuoteAndNewLine
+            this.addColumnIndexMapping(currentFieldEndIndex)
 
-            this._row.push(input.substring(this._cursor, this._quoteSearch).replace(quoteCharRegex, this._quoteChar));
-            this.saveRow(this._quoteSearch + 1 + spacesBetweenQuoteAndNewLine + newlineLen);
-            nextDelim = input.indexOf(this._delim, this._cursor);	// because we may have skipped the nextDelim in the quoted field
-            this._quoteSearch = input.indexOf(this._quoteChar, this._cursor);	// we search for first quote in next line
+            this._row.push(input.substring(this._cursor, this._quoteSearch).replace(quoteCharRegex, this._quoteChar))
+            this.saveRow(this._quoteSearch + 1 + spacesBetweenQuoteAndNewLine + newlineLen)
+            nextDelim = input.indexOf(this._delim, this._cursor)	// because we may have skipped the nextDelim in the quoted field
+            this._quoteSearch = input.indexOf(this._quoteChar, this._cursor)	// we search for first quote in next line
 
             if (this._previewInRows && this._data.length >= this._previewInRows) {
-              return this.returnable();
+              return this.returnable()
             }
 
-            break;
+            break
           }
 
 
@@ -936,34 +949,34 @@ class Parser {
             message: 'Trailing quote on quoted field is malformed',
             row: this._data.length,	// row has yet to be inserted
             index: this._cursor
-          });
+          })
 
-          this._quoteSearch++;
-          continue;
+          this._quoteSearch++
+          continue
 
         }
 
-        continue;
+        continue
       }
 
       if (this._retainQuoteInformation) {
         if (this._firstQuoteInformationRowFound === false) {
-          this._columnIsQuoted.push(false);
+          this._columnIsQuoted.push(false)
         }
 
-        this._cellIsQuotedInfoRow.push(false);
+        this._cellIsQuotedInfoRow.push(false)
       }
 
       // Comment found at start of new line
       if (this._comments && this._row.length === 0 && input.substr(this._cursor, commentsLen) === this._comments) {
         if (this._nextNewline === -1)	// Comment ends at EOF
         {
-          return this.returnable();
+          return this.returnable()
         }
-        this._cursor = this._nextNewline + newlineLen;
-        this._nextNewline = input.indexOf(this._newlineString, this._cursor);
-        nextDelim = input.indexOf(this._delim, this._cursor);
-        continue;
+        this._cursor = this._nextNewline + newlineLen
+        this._nextNewline = input.indexOf(this._newlineString, this._cursor)
+        nextDelim = input.indexOf(this._delim, this._cursor)
+        continue
       }
 
       // eslint-disable-next-line camelcase
@@ -975,21 +988,21 @@ class Parser {
           //add the last comment
 
           // eslint-disable-next-line camelcase
-          currentFieldEndIndex = input.length - 1;
-          this.addColumnIndexMapping(currentFieldEndIndex);
+          currentFieldEndIndex = input.length - 1
+          this.addColumnIndexMapping(currentFieldEndIndex)
 
-          this._row.push(input.substring(this._cursor));
-          this.pushRow(this._row); // is called in finish
-          return this.returnable();
+          this._row.push(input.substring(this._cursor))
+          this.pushRow(this._row) // is called in finish
+          return this.returnable()
         }
 
-        currentFieldEndIndex = this._nextNewline - 1;
-        this.addColumnIndexMapping(currentFieldEndIndex);
+        currentFieldEndIndex = this._nextNewline - 1
+        this.addColumnIndexMapping(currentFieldEndIndex)
 
-        this._row.push(input.substring(this._cursor, this._nextNewline));
-        this.saveRow(this._nextNewline + newlineLen);
-        nextDelim = input.indexOf(this._delim, this._cursor);
-        continue;
+        this._row.push(input.substring(this._cursor, this._nextNewline))
+        this.saveRow(this._nextNewline + newlineLen)
+        nextDelim = input.indexOf(this._delim, this._cursor)
+        continue
       }
 
       // Next delimiter comes before next newline, so we've reached end of field
@@ -997,76 +1010,72 @@ class Parser {
         // we check, if we have quotes, because delimiter char may be part of field enclosed in quotes
         if (this._quoteSearch > nextDelim) { //patched
           // we have quotes, so we try to find the next delimiter not enclosed in quotes and also next starting quote char
-          var nextDelimObj = this.getNextUnqotedDelimiter(nextDelim, this._quoteSearch, this._nextNewline);
+          const nextDelimObj = this.getNextUnqotedDelimiter(nextDelim, this._quoteSearch, this._nextNewline)
 
           // if we have next delimiter char which is not enclosed in quotes
           if (nextDelimObj.nextDelim !== null && nextDelimObj.quoteSearch !== null) {
-            nextDelim = nextDelimObj.nextDelim;
-            this._quoteSearch = nextDelimObj.quoteSearch;
+            nextDelim = nextDelimObj.nextDelim
+            this._quoteSearch = nextDelimObj.quoteSearch
 
-            currentFieldEndIndex = nextDelim;
-            this.addColumnIndexMapping(currentFieldEndIndex);
+            currentFieldEndIndex = nextDelim
+            this.addColumnIndexMapping(currentFieldEndIndex)
 
-            this._row.push(input.substring(this._cursor, nextDelim));
-            this._cursor = nextDelim + delimLen;
+            this._row.push(input.substring(this._cursor, nextDelim))
+            this._cursor = nextDelim + delimLen
             // we look for next delimiter char
-            nextDelim = input.indexOf(this._delim, this._cursor);
-            continue;
+            nextDelim = input.indexOf(this._delim, this._cursor)
+            continue
           }
         } else {
 
-          currentFieldEndIndex = nextDelim;
-          this.addColumnIndexMapping(currentFieldEndIndex);
+          currentFieldEndIndex = nextDelim
+          this.addColumnIndexMapping(currentFieldEndIndex)
 
-          this._row.push(input.substring(this._cursor, nextDelim));
-          this._cursor = nextDelim + delimLen;
-          nextDelim = input.indexOf(this._delim, this._cursor);
-          continue;
+          this._row.push(input.substring(this._cursor, nextDelim))
+          this._cursor = nextDelim + delimLen
+          nextDelim = input.indexOf(this._delim, this._cursor)
+          continue
         }
       }
 
       // End of row
       if (this._nextNewline !== -1) {
-        currentFieldEndIndex = this._nextNewline - 1;
-        this.addColumnIndexMapping(currentFieldEndIndex);
+        currentFieldEndIndex = this._nextNewline - 1
+        this.addColumnIndexMapping(currentFieldEndIndex)
 
-        this._row.push(input.substring(this._cursor, this._nextNewline));
-        this.saveRow(this._nextNewline + newlineLen);
-
-        //remove this? why? this only disables the next if??
-        if (this._firstQuoteInformationRowFound) {
-        }
+        this._row.push(input.substring(this._cursor, this._nextNewline))
+        this.saveRow(this._nextNewline + newlineLen)
 
         if (this._previewInRows && this._data.length >= this._previewInRows) {
-          return this.returnable();
+          return this.returnable()
         }
 
-        continue;
+        continue
       }
 
-      break;
+      break
     }
 
-    currentFieldEndIndex = input.length - 1;
-    this.addColumnIndexMapping(currentFieldEndIndex);
+    currentFieldEndIndex = input.length - 1
+    this.addColumnIndexMapping(currentFieldEndIndex)
 
-    return this.finish();
+    return this.finish()
   }
 
 
   pushRow(row: string[]) {
-    this._data.push(row);
-    this._lastCursor = this._cursor;
+    this._data.push(row)
+    this._lastCursor = this._cursor
 
     if (this._outColumnIndexToCsvColumnIndexMapping) {
-      this._outColumnIndexToCsvColumnIndexMapping.push(this._currRowColumnIndexToCsvColumnIndexMapping);
-      this._currRowColumnIndexToCsvColumnIndexMapping = [];
+      this._outColumnIndexToCsvColumnIndexMapping.push(this._currRowColumnIndexToCsvColumnIndexMapping)
+      this._currRowColumnIndexToCsvColumnIndexMapping = []
     }
-    this._currentRowStartIndex = this._cursor;
+    this._currentRowStartIndex = this._cursor
 
     if (this._retainQuoteInformation) {
-      this._cellIsQuotedInfo.push(this._cellIsQuotedInfoRow);
-      this._cellIsQuotedInfoRow = [];
+      this._cellIsQuotedInfo.push(this._cellIsQuotedInfoRow)
+      this._cellIsQuotedInfoRow = []
     }
 
     if (this._firstQuoteInformationRowFound === false) {
@@ -1074,10 +1083,10 @@ class Parser {
       if (this._row.length === 1 &&
         (this._row[0] === '' //empty row is skipped in ui --> no quote information
           || this._rowInsertCommentLines_commentsString && this._row[0].startsWith(this._rowInsertCommentLines_commentsString))) { //comment row should not give
-        this._firstQuoteInformationRowFound = false;
-        this._columnIsQuoted = []; //reset for next row
+        this._firstQuoteInformationRowFound = false
+        this._columnIsQuoted = [] //reset for next row
       } else {
-        this._firstQuoteInformationRowFound = true;
+        this._firstQuoteInformationRowFound = true
       }
     }
   }
@@ -1088,7 +1097,7 @@ class Parser {
    */
   addColumnIndexMapping(cumulativeColumnIndex: number) {
     if (this._outColumnIndexToCsvColumnIndexMapping) {
-      this._currRowColumnIndexToCsvColumnIndexMapping.push(cumulativeColumnIndex - this._currentRowStartIndex);
+      this._currRowColumnIndexToCsvColumnIndexMapping.push(cumulativeColumnIndex - this._currentRowStartIndex)
     }
   }
 
@@ -1098,12 +1107,12 @@ class Parser {
    */
   finish(value?: string) {
     if (typeof value === 'undefined') {
-      value = this._input.substr(this._cursor);
+      value = this._input.substr(this._cursor)
     }
-    this._row.push(value);
-    this._cursor = this._inputLen;	// important in case parsing is paused
-    this.pushRow(this._row);
-    return this.returnable();
+    this._row.push(value)
+    this._cursor = this._inputLen	// important in case parsing is paused
+    this.pushRow(this._row)
+    return this.returnable()
   }
 
   /**
@@ -1113,16 +1122,16 @@ class Parser {
    * preview and end parsing if necessary.
    */
   saveRow(newCursor: number) {
-    this._cursor = newCursor;
-    this.pushRow(this._row);
-    this._row = [];
-    this._nextNewline = this._input.indexOf(this._newlineString, this._cursor);
+    this._cursor = newCursor
+    this.pushRow(this._row)
+    this._row = []
+    this._nextNewline = this._input.indexOf(this._newlineString, this._cursor)
   }
 
   /** Returns an object with the results, errors, and meta. */
   returnable(): ParseParseResult {
 
-    let result: ParseParseResult = {
+    const result: ParseParseResult = {
       data: this._data,
       errors: this._errors,
       meta: {
@@ -1134,51 +1143,51 @@ class Parser {
         outColumnIndexToCsvColumnIndexMapping: this._outColumnIndexToCsvColumnIndexMapping,
         outLineIndexToCsvLineIndexMapping: null //is set in post-processing
       },
-    };
+    }
 
     // use config because we use calcColumnIndexToCsvColumnIndexMapping to notify top
     if (this._outColumnIndexToCsvColumnIndexMapping) {
-      result.meta.outColumnIndexToCsvColumnIndexMapping = this._outColumnIndexToCsvColumnIndexMapping;
+      result.meta.outColumnIndexToCsvColumnIndexMapping = this._outColumnIndexToCsvColumnIndexMapping
     }
 
-    return result;
+    return result
   }
 
   /** Gets the delimiter character, which is not inside the quoted field */
   getNextUnqotedDelimiter(nextDelim: number, quoteSearch: number, nextNewline: number) {
-    var result: {
+    let result: {
       nextDelim: number | null,
       quoteSearch: number | null,
     } = {
       nextDelim: null,
       quoteSearch: null
-    };
+    }
     // get the next closing quote character
-    var nextQuoteSearch = this._input.indexOf(this._quoteChar, quoteSearch + 1);
+    let nextQuoteSearch = this._input.indexOf(this._quoteChar, quoteSearch + 1)
 
     // if next delimiter is part of a field enclosed in quotes
     if (nextDelim > quoteSearch && nextDelim < nextQuoteSearch && (nextQuoteSearch < nextNewline || nextNewline === -1)) {
       // get the next delimiter character after this one
-      var nextNextDelim = this._input.indexOf(this._delim, nextQuoteSearch);
+      const nextNextDelim = this._input.indexOf(this._delim, nextQuoteSearch)
 
       // if there is no next delimiter, return default result
       if (nextNextDelim === -1) {
-        return result;
+        return result
       }
       // find the next opening quote char position
       if (nextNextDelim > nextQuoteSearch) {
-        nextQuoteSearch = this._input.indexOf(this._quoteChar, nextQuoteSearch + 1);
+        nextQuoteSearch = this._input.indexOf(this._quoteChar, nextQuoteSearch + 1)
       }
       // try to get the next delimiter position
-      result = this.getNextUnqotedDelimiter(nextNextDelim, nextQuoteSearch, nextNewline);
+      result = this.getNextUnqotedDelimiter(nextNextDelim, nextQuoteSearch, nextNewline)
     } else {
       result = {
         nextDelim: nextDelim,
         quoteSearch: quoteSearch
-      };
+      }
     }
 
-    return result;
+    return result
   }
 
   /**
@@ -1186,32 +1195,45 @@ class Parser {
    * if Yes, returns the number of spaces
    */
   extraSpaces(index: number): number {
-    let spaceLength = 0;
+    let spaceLength = 0
     if (index !== -1) {
-      let textBetweenClosingQuoteAndIndex = this._input.substring(this._quoteSearch + 1, index);
+      const textBetweenClosingQuoteAndIndex = this._input.substring(this._quoteSearch + 1, index)
       if (textBetweenClosingQuoteAndIndex && textBetweenClosingQuoteAndIndex.trim() === '') {
-        spaceLength = textBetweenClosingQuoteAndIndex.length;
+        spaceLength = textBetweenClosingQuoteAndIndex.length
       }
     }
-    return spaceLength;
+    return spaceLength
   }
 
 }
 
 class UnParser {
   _data: string[][]
+
   _quotes: boolean | boolean[]
+
   _delimiter: string
+
   _newlineChar: string
+
   _quoteChar: string
+
   _escapedQuote: string
+
   _skipEmptyLines: boolean
+
   _isGreedySkipEmptyLines: boolean
+
   _quoteLeadingSpace: boolean
+
   _quoteTrailingSpace: boolean
+
   _determineFieldHasQuotesFunc: ParseUnparseConfig['determineFieldHasQuotesFunc']
+
   _rowInsertCommentLines_commentsString: string | null
+
   _quoteEmptyOrNullFields: boolean
+
   _quoteCharRegex: RegExp
 
   constructor(_data: string[][], _config: ParseUnparseConfig) {
@@ -1230,7 +1252,7 @@ class UnParser {
     this._determineFieldHasQuotesFunc = _config.determineFieldHasQuotesFunc
     this._rowInsertCommentLines_commentsString = _config.rowInsertCommentLines_commentsString
     this._quoteEmptyOrNullFields = _config.quoteEmptyOrNullFields
-    this._quoteCharRegex = new RegExp(escapeRegExp(this._quoteChar), 'g');
+    this._quoteCharRegex = new RegExp(escapeRegExp(this._quoteChar), 'g')
 
     //some checks
 
@@ -1238,27 +1260,26 @@ class UnParser {
     //but this was already here and we don't want to change the behavior that much
     //user could set: +,+ as delimiter and this would be invalid but not equal to some of the BAD_DELIMITERS (only substring)
     // if (!Papa.BAD_DELIMITERS.filter(function(value) { return _config.delimiter.indexOf(value) !== -1; }).length)
-    if (!Papa.BAD_DELIMITERS.some(value => _config.delimiter.indexOf(value) !== -1)) {
-      this._delimiter = Papa.DefaultDelimiter;
+    if (!Papa.BAD_DELIMITERS.some((value) => _config.delimiter.indexOf(value) !== -1)) {
+      this._delimiter = Papa.DefaultDelimiter
     }
 
   }
 
   unparse(): string {
-    var csv = '';
+    let csv = ''
 
     // Then write out the data
-    for (var row = 0; row < this._data.length; row++) {
-      let maxCol = this._data[row].length;
-
-      let emptyLine = false;
-      let nullLine = this._data[row].length === 0;
+    for (let row = 0; row < this._data.length; row++) {
+      const maxCol = this._data[row].length
+      let emptyLine = false
+      const nullLine = this._data[row].length === 0
 
       if (this._skipEmptyLines) {
 
         emptyLine = this._isGreedySkipEmptyLines
                     ? this._data[row].join('').trim() === ''
-                    : this._data[row].length === 1 && this._data[row][0].length === 0;
+                    : this._data[row].length === 1 && this._data[row][0].length === 0
       }
 
       if (!emptyLine) {
@@ -1266,69 +1287,70 @@ class UnParser {
         // eslint-disable-next-line camelcase
         if (this._data[row].length > 0 && this._rowInsertCommentLines_commentsString) {
           if (typeof this._data[row][0] === 'string' && this._data[row][0].startsWith(this._rowInsertCommentLines_commentsString)) {
-            csv += this._data[row][0] + this._newlineChar;
-            continue;
+            csv += this._data[row][0] + this._newlineChar
+            continue
           }
         }
 
-        for (var col = 0; col < maxCol; col++) {
+        for (let col = 0; col < maxCol; col++) {
           if (col > 0 && !nullLine) {
-            csv += this._delimiter;
+            csv += this._delimiter
           }
-          var colIdx = col;
-          csv += this.safe(this._data[row][colIdx], row, col);
+          const colIdx = col
+          csv += this.safe(this._data[row][colIdx], row, col)
         }
         if (row < this._data.length - 1 && (!this._skipEmptyLines || (maxCol > 0 && !nullLine))) {
-          csv += this._newlineChar;
+          csv += this._newlineChar
         }
       }
     }
-    return csv;
+    return csv
   }
 
   /** Encloses a value around quotes if needed (makes a value safe for CSV insertion) */
   safe(str: string, row: number, col: number) {
     if (str === '' || str === null || str === undefined) {
       if (this._quoteEmptyOrNullFields) {
-        return this._quoteChar + '' + this._quoteChar;
+        return this._quoteChar + '' + this._quoteChar
       }
-      return '';
+      return ''
     }
 
     // str = str.toString();
-    var containsQuotes = str.indexOf(this._quoteChar) > -1;
-    str = str.replace(this._quoteCharRegex, this._escapedQuote);
+    const containsQuotes = str.indexOf(this._quoteChar) > -1
+    str = str.replace(this._quoteCharRegex, this._escapedQuote)
 
-    var _preTestNeedQuotes = false;
+    let _preTestNeedQuotes = false
     if (this._determineFieldHasQuotesFunc) {
-      _preTestNeedQuotes = this._determineFieldHasQuotesFunc(str, row, col);
+      _preTestNeedQuotes = this._determineFieldHasQuotesFunc(str, row, col)
       if (_preTestNeedQuotes === undefined || _preTestNeedQuotes === null) {
-        _preTestNeedQuotes = false;
+        _preTestNeedQuotes = false
       }
     }
 
-    let _quotes_option_is_array = Array.isArray(this._quotes)
+    const _quotes_option_is_array = Array.isArray(this._quotes)
 
-    var needsQuotes = (!_quotes_option_is_array && this._quotes)
+    const needsQuotes = (!_quotes_option_is_array && this._quotes)
       || (_quotes_option_is_array && (this._quotes as boolean[])[col])
       || _preTestNeedQuotes
       || this._hasAny(str, Papa.NEED_QUOTES_CHARS) // new line, \r
       || containsQuotes
       || str.indexOf(this._delimiter) > -1 //delimiter
       || this._quoteLeadingSpace && str.charAt(0) === ' ' // starts with a space
-      || this._quoteTrailingSpace && str.charAt(str.length - 1) === ' '; // ends with a space
+      || this._quoteTrailingSpace && str.charAt(str.length - 1) === ' ' // ends with a space
 
     return needsQuotes
            ? this._quoteChar + str + this._quoteChar
-           : str;
+           : str
   }
 
 
   _hasAny(str: string, substrings: string[]) {
-    for (var i = 0; i < substrings.length; i++)
+    for (let i = 0; i < substrings.length; i++) {
       if (str.indexOf(substrings[i]) > -1) {
-        return true;
+        return true
       }
-    return false;
+    }
+    return false
   }
 }

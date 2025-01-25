@@ -1,4 +1,9 @@
 module.exports = {
+	"root": true,
+	"plugins": [
+		'@typescript-eslint'
+	],
+	"parser": '@typescript-eslint/parser',
 	"parserOptions": {
 		"ecmaVersion": 5
 	},
@@ -9,6 +14,7 @@ module.exports = {
 	},
 	"extends": [
 		"eslint:recommended",
+		'plugin:@typescript-eslint/recommended',
 		"prettier"
 	],
 	"rules": {
@@ -27,9 +33,9 @@ module.exports = {
 		"block-spacing": "error",
 		"brace-style": "off",
 		"callback-return": "error",
-		"camelcase": ["error", {"properties": "never"}],
+		"camelcase": "off",
 		"capitalized-comments": "off",
-		"class-methods-use-this": "error",
+		"class-methods-use-this": "off",
 		"comma-dangle": "off",
 		"comma-spacing": "off",
 		"comma-style": [
@@ -43,7 +49,7 @@ module.exports = {
 		],
 		"consistent-return": "off",
 		"consistent-this": "off",
-		"curly": "off",
+		"curly": ["error", "all"],
 		"default-case": "error",
 		"dot-location": "error",
 		"dot-notation": "error",
@@ -69,7 +75,8 @@ module.exports = {
 		"implicit-arrow-linebreak": "error",
 		"indent": [
 			"error",
-			"tab"
+			2,
+			{ "ignoredNodes": ["ConditionalExpression"] }
 		],
 		"indent-legacy": "off",
 		"init-declarations": "off",
@@ -197,7 +204,7 @@ module.exports = {
 		"no-useless-constructor": "error",
 		"no-useless-rename": "error",
 		"no-useless-return": "off",
-		"no-var": "off",
+		"no-var": "error",
 		"no-void": "error",
 		"no-warning-comments": "error",
 		"no-whitespace-before-property": "error",
@@ -209,7 +216,7 @@ module.exports = {
 		"object-curly-newline": ["error", {"consistent": true}],
 		"object-curly-spacing": "off",
 		"object-shorthand": "off",
-		"one-var": "off",
+		"one-var": ["error", "never"],
 		"one-var-declaration-per-line": "off",
 		"operator-assignment": [
 			"error",
@@ -236,12 +243,9 @@ module.exports = {
 		"require-await": "error",
 		"require-jsdoc": "off",
 		"rest-spread-spacing": "error",
-		"semi": "error",
+		"semi": ["error", "never"],
 		"semi-spacing": "error",
-		"semi-style": [
-			"error",
-			"last"
-		],
+		"semi-style": "off",
 		"sort-imports": "error",
 		"sort-keys": "off",
 		"sort-vars": "off",
