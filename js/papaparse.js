@@ -14,11 +14,18 @@ you need to manually compress it, e.g. with https://javascript-minifier.com/
 changelog: (latest first)
 
 - started to track versions with `-custom-1.0.0` suffix
+
+- added config options:
+  - `calcInverseMappings: bool` the other mappings are from source file to csv table, this options calculates the inverse mappings (csv table to source file)
+    - the result will contain `outCsvCellToSourceFilePositionMapping` (where each entry is the start & end position of the cell in the source file)
+    	- one row for each row in the csv table
+      - one entry for each cell in each csv row
+      - entry: {start: number, end: number}
 - added config options:
   - `calcLineIndexToCsvLineIndexMapping: bool` and `calcColumnIndexToCsvColumnIndexMapping: bool`
   - if set to true, the result will contain `outLineIndexToCsvLineIndexMapping` and `outColumnIndexToCsvColumnIndexMapping`
     - outLineIndexToCsvLineIndexMapping: for every line in the input text the csv line it refers to
-    - outColumnIndexToCsvColumnIndexMapping: the end string indices for every every csv line fields (for every csv row)
+    - outColumnIndexToCsvColumnIndexMapping: the end string indices for every csv line fields (for every csv row)
       - note that the last col has no separator, and if it's empty the last end second last indices will be the same!!
 - fixed and issue where multi-character delimiter won't work
 - added option `quoteEmptyOrNullFields` (defaults to false) to unparse which defines how null, undefined and empty strings are quoted
@@ -1674,6 +1681,7 @@ changelog: (latest first)
 
 		//true: collect the string indices for every csv field on the first row
 		var calcColumnIndexToCsvColumnIndexMapping = config.calcColumnIndexToCsvColumnIndexMapping;
+		var calcInverseMappings = config.calcInverseMappings;
 
 		// Delimiter must be valid
 		if (typeof delim !== 'string'

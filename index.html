@@ -5,12 +5,13 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<title>Page Title</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<script src="papaparse.js"></script>
+<!--	<script type="module" src="dist/papaparse.js"></script>-->
 </head>
 <body style="background-color: black;">
 
-<script>
+<script type="module">
 
+import {Papa} from './dist/papaparse.js';
 // var myCsvData = `item_id;description
 // my-item-id;One, two, three, four, five.`
 
@@ -44,8 +45,8 @@ var myCsvData = `1,2,3
 // #end`
 var text = `"633","Hanns-\nHeinrich",False\n\n\n\na,b,c`//Custom Tests.Should map line indices to csv line indices last cell last char is new line (normal mode)
 
-// Papa.unparse([['a', 'x"y']], { escapeChar: '"', quoteChar: "@"})
-// console.log(Papa.unparse([['a', 'x"y']], { quoteChar: "@"}))
+
+console.log(Papa.unparse([['a', 'x"y']], { quoteChar: "@"}))
 
 // console.log(Papa.unparse([['a', 'x"y']], { quoteChar: "\""}))
 

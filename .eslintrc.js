@@ -7,7 +7,10 @@ module.exports = {
 		"worker": true,
 		"node": true
 	},
-	"extends": "eslint:recommended",
+	"extends": [
+		"eslint:recommended",
+		"prettier"
+	],
 	"rules": {
 		"accessor-pairs": "error",
 		"array-bracket-newline": ["error", "consistent"],
