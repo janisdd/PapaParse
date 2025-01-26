@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import {defineConfig} from 'vite'
 import dts from 'vite-plugin-dts'
 
@@ -7,21 +8,20 @@ export default defineConfig({
   build: {
     outDir: './dist',
     minify: false,
-    commonjsOptions: {
-      //https://github.com/vitejs/vite/issues/5759
-      //@ts-ignore
-      ignoreTryCatch: false
-    },
     lib: {
       entry: './papaparse.ts',
       name: 'papaparse',
       fileName: 'papaparse',
       formats: ['umd']
-    }
+    },
+  },
+  test: {
+    include: ['tests/**/*']
   },
   plugins: [
-    dts()
+    dts({
+      exclude: ['tests/**/*', 'vite.config.*']
+    })
   ],
-  define: {
-  }
+  define: {}
 })

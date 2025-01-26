@@ -3,6 +3,12 @@ module.exports = {
 	"plugins": [
 		'@typescript-eslint'
 	],
+	"ignorePatterns": [
+		".eslintrc.js",
+		"tests/*",
+		"js_before_ts/*",
+		"papaparse_old.js"
+	],
 	"parser": '@typescript-eslint/parser',
 	"parserOptions": {
 		"ecmaVersion": 5
@@ -14,10 +20,11 @@ module.exports = {
 	},
 	"extends": [
 		"eslint:recommended",
-		'plugin:@typescript-eslint/recommended',
-		"prettier"
+		'plugin:@typescript-eslint/recommended'
 	],
 	"rules": {
+		"@typescript-eslint/no-explicit-any": "off",
+		"@typescript-eslint/ban-ts-comment": "off",
 		"accessor-pairs": "error",
 		"array-bracket-newline": ["error", "consistent"],
 		"array-bracket-spacing": [
@@ -90,7 +97,7 @@ module.exports = {
 		],
 		"lines-around-comment": "off",
 		"lines-around-directive": "off",
-		"lines-between-class-members": "error",
+		"lines-between-class-members": ["error", "always", { "exceptAfterSingleLine": true }],
 		"max-depth": "off",
 		"max-len": "off",
 		"max-lines": "off",
@@ -206,7 +213,7 @@ module.exports = {
 		"no-useless-return": "off",
 		"no-var": "error",
 		"no-void": "error",
-		"no-warning-comments": "error",
+		"no-warning-comments": "off",
 		"no-whitespace-before-property": "error",
 		"no-with": "error",
 		"nonblock-statement-body-position": [
@@ -246,7 +253,7 @@ module.exports = {
 		"semi": ["error", "never"],
 		"semi-spacing": "error",
 		"semi-style": "off",
-		"sort-imports": "error",
+		"sort-imports": "off",
 		"sort-keys": "off",
 		"sort-vars": "off",
 		"space-before-blocks": "error",

@@ -63,7 +63,7 @@ changelog: (latest first)
 - `cellIsQuotedInfo` now respects `skipEmptyLines` and returns the same amount of rows as the data array
 */
 
-export type ParseConfig = {
+export type ParseConfigAll = {
   /**
    * empty for auto-detect
    */
@@ -100,13 +100,15 @@ export type ParseConfig = {
    * but for some applications we need to know if a cell was quoted
    * true: the result will contain the information if a cell was quoted or not
    * see {@link ParseParseResult.columnIsQuoted} and {@link ParseParseResult.cellIsQuotedInfo}
+   * false: information will be null
    */
   retainQuoteInformation: boolean
 
   /**
    * if a field should contain the quoteChar but as data and not as quoteChar, it must be escaped
+   * empty to use quote char
    */
-  escapeChar: string
+  escapeChar: '' | string
 
 
   /**
@@ -124,7 +126,6 @@ export type ParseConfig = {
 
   /**
    * If > 0, only that many rows will be parsed.
-   * TODO rename
    */
   previewInRows: number | null
 
@@ -132,6 +133,7 @@ export type ParseConfig = {
   calcColumnIndexToCsvColumnIndexMapping: boolean
 
 }
+export type ParseConfig = Partial<ParseConfigAll>
 
 export type ParseParseResult = {
   data: string[][]
@@ -155,7 +157,7 @@ export interface ParseResultMeta {
   cursor: number;
 
   /**
-   * when {@link ParseConfig.retainQuoteInformation} is set to true, this array contains the information if a column was quoted or not
+   * when {@link ParseConfigAll.retainQuoteInformation} is set to true, this array contains the information if a column was quoted or not
    * a column is quoted if the first cell of the column was quoted
    *
    * @deprecated
@@ -163,7 +165,7 @@ export interface ParseResultMeta {
    */
   columnIsQuoted: boolean[] | null
   /**
-   * when {@link ParseConfig.retainQuoteInformation} is set to true, this array contains the information if a cell was quoted or not
+   * when {@link ParseConfigAll.retainQuoteInformation} is set to true, this array contains the information if a cell was quoted or not
    */
   cellIsQuotedInfo: boolean[][] | null
 
@@ -199,12 +201,15 @@ export interface ParseError {
   index?: number
 }
 
-export type ParseUnparseConfig = {
+export type ParseUnparseConfigAll = {
 
   delimiter: string
   newlineChar: string
   quoteChar: string
-  escapeChar: string
+  /**
+   * empty to use quote char
+   */
+  escapeChar: '' | string
   skipEmptyLines: boolean | 'greedy'
 
   /**
@@ -227,16 +232,17 @@ export type ParseUnparseConfig = {
   determineFieldHasQuotesFunc?: ((field: string, row: number, col: number) => boolean)
 
   /**
-   * see {@link ParseConfig.rowInsertCommentLines_commentsString}
+   * see {@link ParseConfigAll.rowInsertCommentLines_commentsString}
    */
   rowInsertCommentLines_commentsString: string | null
 }
+export type ParseUnparseConfig = Partial<ParseUnparseConfigAll>
 
 /**
  * some options might be unset or will bet auto-detected,
  * this is the effective configuration
  */
-interface ParseConfigEffective extends ParseConfig {
+export interface ParseConfigEffective extends ParseConfigAll {
   delimiter: string
   newline: '\r' | '\n' | '\r\n'
   //empty when no comment string
@@ -245,14 +251,17 @@ interface ParseConfigEffective extends ParseConfig {
 }
 
 
-const parseConfigUserDefaults: ParseConfig = {
+/**
+ * only exports to inspect defaults
+ */
+export const __parseConfigUserDefaults: ParseConfigAll = {
   delimiter: '',
   newline: '',
   comments: null,
   quoteChar: '"',
   retainQuoteInformation: false,
-  escapeChar: '"', //TODO
-  skipEmptyLines: true,
+  escapeChar: '',
+  skipEmptyLines: false,
   delimitersToGuess: [',', '\t', '|', ';', String.fromCharCode(30), String.fromCharCode(31)],
   maxDelimiterGuessLength: 5000,
   previewInRows: null,
@@ -261,12 +270,15 @@ const parseConfigUserDefaults: ParseConfig = {
   calcLineIndexToCsvLineIndexMapping: false,
 }
 
-const unparseConfigUserDefaults: ParseUnparseConfig = {
+/**
+ * only exports to inspect defaults
+ */
+export const __unparseConfigUserDefaults: ParseUnparseConfigAll = {
   delimiter: ',',
   newlineChar: '\r\n',
   quoteChar: '"',
-  escapeChar: '"',
-  skipEmptyLines: true,
+  escapeChar: '', //empty to use quote char
+  skipEmptyLines: false,
   quotes: false,
   quoteEmptyOrNullFields: false,
   quoteLeadingSpace: true,
@@ -286,9 +298,9 @@ export class Papa {
   static DefaultQuoteChar = '"'
   static DefaultEscapeChar = '"'
 
-  static parse(input: string, _config: Partial<ParseConfig>) {
-    const _realConfig: ParseConfig = {
-      ...parseConfigUserDefaults,
+  static parse(input: string, _config?: ParseConfig) {
+    const _realConfig: ParseConfigAll = {
+      ...__parseConfigUserDefaults,
       ..._config
     }
     const _handle = new ParserHandle(input, _realConfig)
@@ -296,14 +308,14 @@ export class Papa {
     return results
   }
 
-  static unparse(data: string[][], _config: Partial<ParseUnparseConfig>) {
-    const _realConfig: ParseUnparseConfig = {
-      ...unparseConfigUserDefaults,
+  static unparse(data: Array<Array<string | null | undefined>>, _config?: ParseUnparseConfig) {
+    const _realConfig: ParseUnparseConfigAll = {
+      ...__unparseConfigUserDefaults,
       ..._config
     }
 
-    const unparser = new UnParser(data, _realConfig)
-    const csv = unparser.unparse()
+    const unparser = new UnParser(_realConfig)
+    const csv = unparser.unparse(data)
     return csv
   }
 
@@ -319,11 +331,9 @@ class ParserHandle {
 
   _delimiterError: boolean
 
-  _errors: ParseError[] = []
-
   _isGreedySkipEmptyLines: boolean
 
-  constructor(public input: string, _config: ParseConfig) {
+  constructor(public input: string, _config: ParseConfigAll) {
 
     let newLine = _config.newline
 
@@ -365,15 +375,23 @@ class ParserHandle {
   }
 
   parse(input: string) {
-    const _parser = new Parser(input, this._effectiveConfig, false)
+    const _parser = new Parser(this._effectiveConfig, false)
     const result = _parser.parse(input)
+
+    //these are set to empty arrays to not initialize them differently
+    //but user expects this to be null if quote info is not necessary
+    if (!this._effectiveConfig.retainQuoteInformation) {
+      result.meta.columnIsQuoted = null
+      result.meta.cellIsQuotedInfo = null
+    }
+
     this._processResults(result, this._delimiterError)
     return result
   }
 
   _processResults(result: ParseParseResult, hasDelimiterError: boolean) {
     if (result && hasDelimiterError) {
-      this._addError('Delimiter', 'UndetectableDelimiter', 'Unable to auto-detect delimiting character; defaulted to \'' + Papa.DefaultDelimiter + '\'')
+      this._addError(result, 'Delimiter', 'UndetectableDelimiter', 'Unable to auto-detect delimiting character; defaulted to \'' + Papa.DefaultDelimiter + '\'')
     }
 
     // even if skip empty lines is set, we have empty lines here, we filter them out later
@@ -401,7 +419,7 @@ class ParserHandle {
         outLineIndexToCsvLineIndexMapping.push(currentCsvLineIndex)
 
         //for empty lines we want the next csv line index
-        if (this._effectiveConfig.skipEmptyLines && this._testEmptyLine(csvLine, this._isGreedySkipEmptyLines)) {
+        if (this._effectiveConfig.skipEmptyLines && ParserHandle._testEmptyLine(csvLine, this._isGreedySkipEmptyLines)) {
           //don't change the index
         } else {
           lastRealCsvLineIndex = currentCsvLineIndex
@@ -435,7 +453,7 @@ class ParserHandle {
         for (let m = result.data.length - 1; m >= 0; m--) {
           const _csvLine = result.data[m]
 
-          if (this._testEmptyLine(_csvLine, this._isGreedySkipEmptyLines)) {
+          if (ParserHandle._testEmptyLine(_csvLine, this._isGreedySkipEmptyLines)) {
             outLineIndexToCsvLineIndexMapping[correctingLineIndexIndex] = lastRealCsvLineIndex
             correctingLineIndexIndex--
 
@@ -454,7 +472,7 @@ class ParserHandle {
       // for (var i = 0; i < _results.data.length; i++)
       // 	if (testEmptyLine(_results.data[i]))
       // 		_results.data.splice(i--, 1);
-      const filterData = result.data.map((row) => !this._testEmptyLine(row, this._isGreedySkipEmptyLines))
+      const filterData = result.data.map((row) => !ParserHandle._testEmptyLine(row, this._isGreedySkipEmptyLines))
 
       result.data = result.data.filter((d, i) => filterData[i])
 
@@ -489,11 +507,11 @@ class ParserHandle {
         retainQuoteInformation: false,
       }
 
-      const parserForGuessing = new Parser(input, configForGuessing, true)
+      const parserForGuessing = new Parser(configForGuessing, true)
       const preview = parserForGuessing.parse(input)
 
       for (let j = 0; j < preview.data.length; j++) {
-        if (skipEmptyLines && this._testEmptyLine(preview.data[j], this._isGreedySkipEmptyLines)) {
+        if (skipEmptyLines && ParserHandle._testEmptyLine(preview.data[j], this._isGreedySkipEmptyLines)) {
           emptyLinesCount++
           continue
         }
@@ -556,8 +574,8 @@ class ParserHandle {
            : '\r'
   }
 
-  _addError(type: string, code: string, msg: string, row?: number) {
-    this._errors.push({
+  _addError(result: ParseParseResult, type: string, code: string, msg: string, row?: number) {
+    result.errors.push({
       type: type,
       code: code,
       message: msg,
@@ -567,17 +585,22 @@ class ParserHandle {
 
   /**
    * tests if a line is considered empty
+   *
+   * skipEmptyLines:
+   * If true, lines that are completely empty (those which evaluate to an empty string) will be skipped. empty lines do not have a delimiter, thus only one cell
+   * If set to 'greedy', lines that don't have any content (those which have only whitespace after parsing) will also be skipped.
    */
-  _testEmptyLine(line: string[], greedy: boolean): boolean {
+  static _testEmptyLine(line: Array<string | null | undefined>, greedy: boolean): boolean {
+    //tested: ['', null, undefined].join('').trim() --> ''
     return greedy
            ? line.join('').trim() === ''
-           : line.length === 1 && line[0].length === 0
+           : line.length === 1 && (line[0] === null || line[0] === undefined || line[0].length === 0)
   }
 
 }
 
 
-class Parser {
+export class Parser {
   _config: ParseConfigEffective
 
   _input: string
@@ -659,9 +682,9 @@ class Parser {
 
   _cellIsQuotedInfoRow: boolean[]
 
-  constructor(input: string, config: ParseConfigEffective, isGuessingDelimiter: boolean) {
-
-    this._input = input
+  constructor(config: ParseConfigEffective, isGuessingDelimiter: boolean) {
+    this._input = ''
+    this._inputLen = -1
     this._config = config
     this._quoteSearch = -1
     this._nextNewline = -1
@@ -673,8 +696,6 @@ class Parser {
     this._delim = config.delimiter
     this._newlineString = config.newline
     this._quoteChar = config.quoteChar
-    this._inputLen = input.length
-    this._escapeChar = config.escapeChar
     this._previewInRows = config.previewInRows
     this._firstQuoteInformationRowFound = false
     this._currentRowStartIndex = 0
@@ -702,9 +723,9 @@ class Parser {
       this._quoteChar = Papa.DefaultQuoteChar
     }
 
-    if (!this._escapeChar) {
-      this._escapeChar = Papa.DefaultEscapeChar
-    }
+    this._escapeChar = config.escapeChar
+                       ? config.escapeChar
+                       : this._quoteChar
 
     // Delimiter must be valid
     if (Papa.BAD_DELIMITERS.indexOf(this._delim) > -1) {
@@ -726,6 +747,8 @@ class Parser {
   }
 
   parse(input: string): ParseParseResult {
+    this._input = input
+    this._inputLen = input.length
     const _config = this._config
     // We don't need to compute some of these every time parse() is called,
     // but having them in a more local scope seems to perform better
@@ -1208,7 +1231,7 @@ class Parser {
 }
 
 class UnParser {
-  _data: string[][]
+  _data: Array<Array<string | null | undefined>>
 
   _quotes: boolean | boolean[]
 
@@ -1228,7 +1251,7 @@ class UnParser {
 
   _quoteTrailingSpace: boolean
 
-  _determineFieldHasQuotesFunc: ParseUnparseConfig['determineFieldHasQuotesFunc']
+  _determineFieldHasQuotesFunc: ParseUnparseConfigAll['determineFieldHasQuotesFunc']
 
   _rowInsertCommentLines_commentsString: string | null
 
@@ -1236,15 +1259,12 @@ class UnParser {
 
   _quoteCharRegex: RegExp
 
-  constructor(_data: string[][], _config: ParseUnparseConfig) {
-    this._data = _data
-
+  constructor(_config: ParseUnparseConfigAll) {
+    this._data = []
     this._quotes = _config.quotes
     this._delimiter = _config.delimiter
     this._newlineChar = _config.newlineChar
     this._quoteChar = _config.quoteChar
-    // this._escapedQuote = this._quoteChar + this._quoteChar
-    this._escapedQuote = _config.escapeChar + this._quoteChar
     this._skipEmptyLines = _config.skipEmptyLines === 'greedy' || _config.skipEmptyLines
     this._isGreedySkipEmptyLines = _config.skipEmptyLines === 'greedy'
     this._quoteLeadingSpace = _config.quoteLeadingSpace
@@ -1254,19 +1274,25 @@ class UnParser {
     this._quoteEmptyOrNullFields = _config.quoteEmptyOrNullFields
     this._quoteCharRegex = new RegExp(escapeRegExp(this._quoteChar), 'g')
 
+    this._escapedQuote = _config.escapeChar
+                         ? _config.escapeChar + this._quoteChar
+                         : this._quoteChar + this._quoteChar
+
     //some checks
 
     //we could use the check from parse: if (Papa.BAD_DELIMITERS.indexOf(this._delimiter) > -1) {
     //but this was already here and we don't want to change the behavior that much
     //user could set: +,+ as delimiter and this would be invalid but not equal to some of the BAD_DELIMITERS (only substring)
-    // if (!Papa.BAD_DELIMITERS.filter(function(value) { return _config.delimiter.indexOf(value) !== -1; }).length)
-    if (!Papa.BAD_DELIMITERS.some((value) => _config.delimiter.indexOf(value) !== -1)) {
+    // if (!Papa.BAD_DELIMITERS.filter(function(value) { return _config.delimiter.indexOf(value) !== -1 }).length) {
+    if (Papa.BAD_DELIMITERS.some((value) => _config.delimiter.indexOf(value) !== -1)) {
       this._delimiter = Papa.DefaultDelimiter
     }
 
   }
 
-  unparse(): string {
+  unparse(_data: Array<Array<string | null | undefined>>): string {
+    this._data = _data
+
     let csv = ''
 
     // Then write out the data
@@ -1276,18 +1302,16 @@ class UnParser {
       const nullLine = this._data[row].length === 0
 
       if (this._skipEmptyLines) {
-
-        emptyLine = this._isGreedySkipEmptyLines
-                    ? this._data[row].join('').trim() === ''
-                    : this._data[row].length === 1 && this._data[row][0].length === 0
+        emptyLine = ParserHandle._testEmptyLine(this._data[row], this._isGreedySkipEmptyLines)
       }
 
       if (!emptyLine) {
 
         // eslint-disable-next-line camelcase
         if (this._data[row].length > 0 && this._rowInsertCommentLines_commentsString) {
-          if (typeof this._data[row][0] === 'string' && this._data[row][0].startsWith(this._rowInsertCommentLines_commentsString)) {
-            csv += this._data[row][0] + this._newlineChar
+          const firstCellData = this._data[row][0]
+          if (typeof firstCellData === 'string' && firstCellData.startsWith(this._rowInsertCommentLines_commentsString)) {
+            csv += firstCellData + this._newlineChar
             continue
           }
         }
@@ -1308,7 +1332,7 @@ class UnParser {
   }
 
   /** Encloses a value around quotes if needed (makes a value safe for CSV insertion) */
-  safe(str: string, row: number, col: number) {
+  safe(str: string | null | undefined, row: number, col: number) {
     if (str === '' || str === null || str === undefined) {
       if (this._quoteEmptyOrNullFields) {
         return this._quoteChar + '' + this._quoteChar
@@ -1316,7 +1340,8 @@ class UnParser {
       return ''
     }
 
-    // str = str.toString();
+    //just ensure that the value is a string... should be enforced via types but why not
+    str = str.toString()
     const containsQuotes = str.indexOf(this._quoteChar) > -1
     str = str.replace(this._quoteCharRegex, this._escapedQuote)
 
@@ -1343,7 +1368,6 @@ class UnParser {
            ? this._quoteChar + str + this._quoteChar
            : str
   }
-
 
   _hasAny(str: string, substrings: string[]) {
     for (let i = 0; i < substrings.length; i++) {

@@ -11,7 +11,8 @@
 
 <script type="module">
 
-import {Papa} from './papaparse.ts';
+import {Papa, Parser} from './papaparse.ts';
+// import {Parser} from "./papaparse";
 // var myCsvData = `item_id;description
 // my-item-id;One, two, three, four, five.`
 
@@ -45,7 +46,51 @@ var myCsvData = `1,2,3
 // #end`
 var text = `"633","Hanns-\nHeinrich",False\n\n\n\na,b,c`//Custom Tests.Should map line indices to csv line indices last cell last char is new line (normal mode)
 
-console.log(Papa.unparse([['a', 'x"y']], { quoteChar: "@"}))
+
+{
+	const __parseConfigUserDefaults = {
+		delimiter: '',
+		newline: '',
+		comments: null,
+		quoteChar: '"',
+		retainQuoteInformation: false,
+		escapeChar: '',
+		skipEmptyLines: false,
+		delimitersToGuess: [',', '\t', '|', ';', String.fromCharCode(30), String.fromCharCode(31)],
+		maxDelimiterGuessLength: 5000,
+		previewInRows: null,
+		rowInsertCommentLines_commentsString: null,
+		calcColumnIndexToCsvColumnIndexMapping: false,
+		calcLineIndexToCsvLineIndexMapping: false,
+	}
+	let test = {
+		config: {
+			skipEmptyLines: true
+		},
+		input: 'a,b,c\n'
+	}
+
+	const effectiveConfig = {
+		...__parseConfigUserDefaults,
+		delimiter: ',',
+		...test.config,
+		newline: '\n',
+		comments: test.config?.comments ?? '',
+		previewInRows: test.config?.previewInRows ?? 0
+	}
+	const _parser = new Parser(effectiveConfig, false)
+	const actual = _parser.parse(test.input)
+	console.log(actual)
+}
+
+
+const ppp = Papa.parse('a,b,c\n', {  skipEmptyLines: true})
+console.log(ppp.meta.cellIsQuotedInfo)
+
+console.log(Papa.parse('a,+b++c+', { quoteChar: "+"}))
+// console.log(Papa.unparse([['a', 'x+y']], { quoteChar: "+"}))
+
+// console.log(Papa.unparse([['a', 'x"y']], { quoteChar: "@"}))
 
 // console.log(Papa.unparse([['a', 'x"y']], { quoteChar: "\""}))
 
