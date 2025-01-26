@@ -296,7 +296,7 @@ export class Papa {
     return results
   }
 
-  static unparse(data: string[][], _config: ParseUnparseConfig) {
+  static unparse(data: string[][], _config: Partial<ParseUnparseConfig>) {
     const _realConfig: ParseUnparseConfig = {
       ...unparseConfigUserDefaults,
       ..._config
