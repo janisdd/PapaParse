@@ -84,7 +84,7 @@ var text = `"633","Hanns-\nHeinrich",False\n\n\n\na,b,c`//Custom Tests.Should ma
 }
 
 
-const ppp = Papa.parse('a,b,c\n', {  skipEmptyLines: true})
+const ppp = Papa.parse('a,b,c\nbcd', {  previewInRows: 3})
 console.log(ppp.meta.cellIsQuotedInfo)
 
 console.log(Papa.parse('a,+b++c+', { quoteChar: "+"}))

@@ -126,6 +126,7 @@ export type ParseConfigAll = {
 
   /**
    * If > 0, only that many rows will be parsed.
+   * null or <= 0 to not use preview
    */
   previewInRows: number | null
 
@@ -371,6 +372,11 @@ class ParserHandle {
       comments,
       delimiter: usedDelimiter,
     }
+
+    if (this._effectiveConfig.previewInRows < 0) {
+      this._effectiveConfig.previewInRows = 0
+    }
+
     this._isGreedySkipEmptyLines = this._effectiveConfig.skipEmptyLines === 'greedy'
   }
 
@@ -814,7 +820,7 @@ export class Parser {
         this.pushRow(_row)
 
 
-        if (this._previewInRows && i >= this._previewInRows) {
+        if (this._previewInRows > 0 && this._previewInRows <= i) {
           this._data = this._data.slice(0, this._previewInRows)
           return this.returnable()
         }
@@ -957,7 +963,7 @@ export class Parser {
             nextDelim = input.indexOf(this._delim, this._cursor)	// because we may have skipped the nextDelim in the quoted field
             this._quoteSearch = input.indexOf(this._quoteChar, this._cursor)	// we search for first quote in next line
 
-            if (this._previewInRows && this._data.length >= this._previewInRows) {
+            if (this._previewInRows > 0 && this._data.length >= this._previewInRows) {
               return this.returnable()
             }
 

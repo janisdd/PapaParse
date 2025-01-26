@@ -400,6 +400,15 @@ const PARSE_TESTS: TestType[] = [
     }
   },
   {
+    description: "Preview -1 rows should default to parsing all",
+    input: 'a,b,c\r\nd,e,f\r\ng,h,i',
+    config: { previewInRows: -1 },
+    expected: {
+      data: [['a', 'b', 'c'], ['d', 'e', 'f'], ['g', 'h', 'i']],
+      errors: []
+    }
+  },
+  {
     description: "Preview 0 rows should default to parsing all",
     input: 'a,b,c\r\nd,e,f\r\ng,h,i',
     config: { previewInRows: 0 },
