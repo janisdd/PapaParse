@@ -77,7 +77,7 @@ export type ParseConfigAll = {
   /**
    * when a cell starts with this string, it is treated as a comment and the row is ignored
    *
-   * if you want to include comment rows in the parse result, use {@link rowInsertCommentLines_commentsString}
+   * if you want to include comment rows in the parse result, use {@link rowInsertCommentLines_commentsString} and set this to null
    */
   comments: string | null
 
@@ -989,15 +989,18 @@ export class Parser {
       }
 
       if (this._retainQuoteInformation) {
-        if (this._firstQuoteInformationRowFound === false) {
-          this._columnIsQuoted.push(false)
-        }
-
         this._cellIsQuotedInfoRow.push(false)
       }
 
       // Comment found at start of new line
       if (this._comments && this._row.length === 0 && input.substr(this._cursor, commentsLen) === this._comments) {
+
+        // for comments we don't call pushRow, so we need to end the cell quote info manually
+        // but for comments we don't want the quote info, so just reset it
+        if (this._retainQuoteInformation) {
+          this._cellIsQuotedInfoRow = []
+        }
+
         if (this._nextNewline === -1)	// Comment ends at EOF
         {
           return this.returnable()
@@ -1006,6 +1009,12 @@ export class Parser {
         this._nextNewline = input.indexOf(this._newlineString, this._cursor)
         nextDelim = input.indexOf(this._delim, this._cursor)
         continue
+      }
+
+      if (this._retainQuoteInformation) {
+        if (this._firstQuoteInformationRowFound === false) {
+          this._columnIsQuoted.push(false)
+        }
       }
 
       // eslint-disable-next-line camelcase
