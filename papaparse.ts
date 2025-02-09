@@ -63,6 +63,11 @@ changelog: (latest first)
 - `cellIsQuotedInfo` now respects `skipEmptyLines` and returns the same amount of rows as the data array
 */
 
+export type FieldPosition = {
+  start: number
+  end: number
+}
+
 export type ParseConfigAll = {
   /**
    * empty for auto-detect
@@ -130,8 +135,10 @@ export type ParseConfigAll = {
    */
   previewInRows: number | null
 
+  //this is calculated in post-processing after parsing
   calcLineIndexToCsvLineIndexMapping: boolean
   calcColumnIndexToCsvColumnIndexMapping: boolean
+  calcCsvFieldToInputPositionMapping: boolean
 
 }
 export type ParseConfig = Partial<ParseConfigAll>
@@ -176,6 +183,8 @@ export interface ParseResultMeta {
   outLineIndexToCsvLineIndexMapping: number[] | null
   //TODO
   outColumnIndexToCsvColumnIndexMapping: number[][] | null
+
+  outCsvFieldToInputPositionMapping: FieldPosition[][] | null
 }
 
 export interface ParseError {
@@ -269,6 +278,7 @@ export const __parseConfigUserDefaults: ParseConfigAll = {
   rowInsertCommentLines_commentsString: null,
   calcColumnIndexToCsvColumnIndexMapping: false,
   calcLineIndexToCsvLineIndexMapping: false,
+  calcCsvFieldToInputPositionMapping: false,
 }
 
 /**
@@ -510,6 +520,7 @@ class ParserHandle {
         previewInRows: 10,
         calcColumnIndexToCsvColumnIndexMapping: false,
         calcLineIndexToCsvLineIndexMapping: false,
+        calcCsvFieldToInputPositionMapping: false,
         retainQuoteInformation: false,
       }
 
@@ -647,10 +658,12 @@ export class Parser {
 
   /**
    * normally when parsing quotes are discarded as they don't change the retrieved data
-   * true: quote information are returned as part of the parse result, for each column:
-   *   true: column was quoted
-   *   false: column was not quoted
-   * false: quote information is returned as null or undefined (falsy)
+   * true: collect information about quotes (cells, columns)
+   * false: do not collect quote information
+   * see {@link _columnIsQuoted}, {@link _cellIsQuotedInfo}
+   *
+   * NOTE: if false -> we keep the arrays empty and in post-processing we set them to null (not here)
+   *
    *
    * to determine if a column is quoted we use the first cell only (if a column has no cells then it's not quoted)
    * so if the first line has only 3 columns and all other more than 3 (e.g. 4) then all columns starting from 4 are treated as not quoted!!
@@ -659,18 +672,19 @@ export class Parser {
    */
   _retainQuoteInformation: boolean
 
+  _columnIsQuoted: boolean[]
+
+  //TODO what about comment, empty lines??
+  /** @type {boolean[][]} for each cell the info if it was quoted originally */
+  _cellIsQuotedInfo: boolean[][]
+  _cellIsQuotedInfoRow: boolean[]
+
   //string index used to calculate the relative current field index in the current row
   _currentRowStartIndex: number
 
   _comments: string
 
   _rowInsertCommentLines_commentsString: string | null
-
-  _columnIsQuoted: boolean[]
-
-  //TODO what about comment, empty lines??
-  /** @type {boolean[][]} for each cell the info if it was quoted originally */
-  _cellIsQuotedInfo: boolean[][]
 
   //note this is the 0 based string index of the fields
   //this also includes the separators
@@ -683,10 +697,13 @@ export class Parser {
   //can be -1 if the field is empty (because we don't skip empty lines before post-processing)(e.g. when the last line is \n)
   //this is because the out csv line mapping includes entries for the text file lines
   _outColumnIndexToCsvColumnIndexMapping: number[][] | null
+  //not null, we check _outColumnIndexToCsvColumnIndexMapping before
+  _currSingleRowColumnIndexToCsvColumnIndexMapping: number[]
 
-  _currRowColumnIndexToCsvColumnIndexMapping: number[]
-
-  _cellIsQuotedInfoRow: boolean[]
+  // MEMBERS FOR TRACKING ORIGINAL FIELD POSITIONS
+  _outFieldPositionMapping: Array<Array<FieldPosition>> | null
+  _currentRowFieldPositions: Array<FieldPosition> = []
+  _fieldStart: number = 0
 
   constructor(config: ParseConfigEffective, isGuessingDelimiter: boolean) {
     this._input = ''
@@ -715,10 +732,15 @@ export class Parser {
     this._columnIsQuoted = []
     this._cellIsQuotedInfo = []
 
+    this._currSingleRowColumnIndexToCsvColumnIndexMapping = []
     this._outColumnIndexToCsvColumnIndexMapping = config.calcColumnIndexToCsvColumnIndexMapping
                                                   ? []
                                                   : null
-    this._currRowColumnIndexToCsvColumnIndexMapping = []
+
+    this._outFieldPositionMapping = config.calcCsvFieldToInputPositionMapping
+                                    ? []
+                                    : null
+
 
     //for output
     this._cellIsQuotedInfoRow = []
@@ -769,29 +791,30 @@ export class Parser {
     if (input.indexOf(this._quoteChar) === -1) {
 
       const rows = input.split(this._newlineString)
-      let row = ''
+      let rowString = ''
 
       for (let i = 0; i < rows.length; i++) {
-        row = rows[i]
+        const rowStart = this._cursor
+        rowString = rows[i]
 
         //we could trim left here but this would not be compatible with not fast mode...
-        const isCommentRow = this._rowInsertCommentLines_commentsString && row.startsWith(this._rowInsertCommentLines_commentsString)
+        const isCommentRow = this._rowInsertCommentLines_commentsString && rowString.startsWith(this._rowInsertCommentLines_commentsString)
         let _row = null
 
         //although we know that there are no quotes (--> columnIsQuoted must be all false entries...)
         //but we want/need to set the right length for the quote array (first real row)
 
-        this._cursor += row.length
+        this._cursor += rowString.length
         if (i !== rows.length - 1) {
           this._cursor += this._newlineString.length
         }
-        if (this._comments && row.substr(0, commentsLen) === this._comments) {
+        if (this._comments && rowString.substr(0, commentsLen) === this._comments) {
           continue
         }
 
         _row = !isCommentRow
-               ? row.split(this._delim)
-               : [row]
+               ? rowString.split(this._delim)
+               : [rowString]
 
         if (this._retainQuoteInformation && this._firstQuoteInformationRowFound === false) {
           //in fast mode there are no quote characters...
@@ -801,7 +824,7 @@ export class Parser {
         if (this._outColumnIndexToCsvColumnIndexMapping) {
           if (isCommentRow) {
             //only one string in the row
-            this._currRowColumnIndexToCsvColumnIndexMapping.push(row.length - 1) //-1 to get 0 based index
+            this._currSingleRowColumnIndexToCsvColumnIndexMapping.push(rowString.length - 1) //-1 to get 0 based index
           } else {
             //we have only delimiters...
             let _cummulativeLength = 0
@@ -812,7 +835,7 @@ export class Parser {
               } else {
                 _cummulativeLength += value.length
               }
-              this._currRowColumnIndexToCsvColumnIndexMapping.push(_cummulativeLength - 1) //-1 to get 0 based index
+              this._currSingleRowColumnIndexToCsvColumnIndexMapping.push(_cummulativeLength - 1) //-1 to get 0 based index
             })
           }
         }
@@ -824,8 +847,26 @@ export class Parser {
           this._data = this._data.slice(0, this._previewInRows)
           return this.returnable()
         }
+
+        if (!this._isGuessingDelimiter && this._outFieldPositionMapping) {
+          //set cell position info
+          const currentRowFieldPositions: FieldPosition[] = []
+          let currFieldStart = rowStart
+          for (let j = 0; j < _row.length; j++) {
+            currentRowFieldPositions.push({
+              start: currFieldStart,
+              end: currFieldStart + _row[j].length
+            })
+            currFieldStart += _row[j].length + (j === 0
+                                                ? 0
+                                                : delimLen)
+          }
+          this._outFieldPositionMapping.push(currentRowFieldPositions)
+        }
+
       }
 
+      //TODO preview in rows
       if (!this._isGuessingDelimiter && this._retainQuoteInformation) {
         //in fast mode we don't have quotes
         this._cellIsQuotedInfo = Array(this._data.length)
@@ -856,6 +897,8 @@ export class Parser {
 
     // Parser loop
     for (; ;) {
+      // Set the start of the current field
+      this._fieldStart = this._cursor
       // Field has opening quote
       if (input[this._cursor] === this._quoteChar) {
         // Start our search for the closing quote where the cursor is
@@ -891,6 +934,12 @@ export class Parser {
               index: this._cursor
             })
 
+            const fieldEnd = this._nextNewline === -1
+                             ? this._inputLen - 1
+                             : this._nextNewline - 1
+
+            this.addFieldPosition(this._fieldStart, fieldEnd)
+
             if (this._nextNewline === -1) {
               this.addColumnIndexMapping(this._inputLen - 1)
             } else {
@@ -903,6 +952,8 @@ export class Parser {
           // Closing quote at EOF
           if (this._quoteSearch === this._inputLen - 1) {
             const value = input.substring(this._cursor, this._quoteSearch).replace(quoteCharRegex, this._quoteChar)
+            const fieldEnd = this._quoteSearch
+            this.addFieldPosition(this._fieldStart, fieldEnd)
             currentFieldEndIndex = this._quoteSearch
             this.addColumnIndexMapping(currentFieldEndIndex)
             return this.finish(value)
@@ -938,6 +989,7 @@ export class Parser {
             currentFieldEndIndex = this._quoteSearch + spacesBetweenQuoteAndDelimiter + delimLen
             this.addColumnIndexMapping(currentFieldEndIndex)
 
+            this.addFieldPosition(this._fieldStart, currentFieldEndIndex - delimLen)
             this._row.push(input.substring(this._cursor, this._quoteSearch).replace(quoteCharRegex, this._quoteChar))
             this._cursor = this._quoteSearch + 1 + spacesBetweenQuoteAndDelimiter + delimLen
 
@@ -958,6 +1010,7 @@ export class Parser {
             currentFieldEndIndex = this._quoteSearch + spacesBetweenQuoteAndNewLine
             this.addColumnIndexMapping(currentFieldEndIndex)
 
+            this.addFieldPosition(this._fieldStart, currentFieldEndIndex)
             this._row.push(input.substring(this._cursor, this._quoteSearch).replace(quoteCharRegex, this._quoteChar))
             this.saveRow(this._quoteSearch + 1 + spacesBetweenQuoteAndNewLine + newlineLen)
             nextDelim = input.indexOf(this._delim, this._cursor)	// because we may have skipped the nextDelim in the quoted field
@@ -1029,6 +1082,7 @@ export class Parser {
           currentFieldEndIndex = input.length - 1
           this.addColumnIndexMapping(currentFieldEndIndex)
 
+          this.addFieldPosition(this._fieldStart, currentFieldEndIndex)
           this._row.push(input.substring(this._cursor))
           this.pushRow(this._row) // is called in finish
           return this.returnable()
@@ -1037,6 +1091,7 @@ export class Parser {
         currentFieldEndIndex = this._nextNewline - 1
         this.addColumnIndexMapping(currentFieldEndIndex)
 
+        this.addFieldPosition(this._fieldStart, currentFieldEndIndex)
         this._row.push(input.substring(this._cursor, this._nextNewline))
         this.saveRow(this._nextNewline + newlineLen)
         nextDelim = input.indexOf(this._delim, this._cursor)
@@ -1057,6 +1112,7 @@ export class Parser {
 
             currentFieldEndIndex = nextDelim
             this.addColumnIndexMapping(currentFieldEndIndex)
+            this.addFieldPosition(this._fieldStart, currentFieldEndIndex)
 
             this._row.push(input.substring(this._cursor, nextDelim))
             this._cursor = nextDelim + delimLen
@@ -1068,6 +1124,7 @@ export class Parser {
 
           currentFieldEndIndex = nextDelim
           this.addColumnIndexMapping(currentFieldEndIndex)
+          this.addFieldPosition(this._fieldStart, currentFieldEndIndex)
 
           this._row.push(input.substring(this._cursor, nextDelim))
           this._cursor = nextDelim + delimLen
@@ -1080,7 +1137,7 @@ export class Parser {
       if (this._nextNewline !== -1) {
         currentFieldEndIndex = this._nextNewline - 1
         this.addColumnIndexMapping(currentFieldEndIndex)
-
+        this.addFieldPosition(this._fieldStart, currentFieldEndIndex)
         this._row.push(input.substring(this._cursor, this._nextNewline))
         this.saveRow(this._nextNewline + newlineLen)
 
@@ -1096,6 +1153,7 @@ export class Parser {
 
     currentFieldEndIndex = input.length - 1
     this.addColumnIndexMapping(currentFieldEndIndex)
+    this.addFieldPosition(this._fieldStart, currentFieldEndIndex)
 
     return this.finish()
   }
@@ -1106,8 +1164,8 @@ export class Parser {
     this._lastCursor = this._cursor
 
     if (this._outColumnIndexToCsvColumnIndexMapping) {
-      this._outColumnIndexToCsvColumnIndexMapping.push(this._currRowColumnIndexToCsvColumnIndexMapping)
-      this._currRowColumnIndexToCsvColumnIndexMapping = []
+      this._outColumnIndexToCsvColumnIndexMapping.push(this._currSingleRowColumnIndexToCsvColumnIndexMapping)
+      this._currSingleRowColumnIndexToCsvColumnIndexMapping = []
     }
     this._currentRowStartIndex = this._cursor
 
@@ -1127,6 +1185,12 @@ export class Parser {
         this._firstQuoteInformationRowFound = true
       }
     }
+
+    if (this._outFieldPositionMapping) {
+      // Record the field positions for this row
+      this._outFieldPositionMapping.push(this._currentRowFieldPositions)
+      this._currentRowFieldPositions = []
+    }
   }
 
   /**
@@ -1135,7 +1199,7 @@ export class Parser {
    */
   addColumnIndexMapping(cumulativeColumnIndex: number) {
     if (this._outColumnIndexToCsvColumnIndexMapping) {
-      this._currRowColumnIndexToCsvColumnIndexMapping.push(cumulativeColumnIndex - this._currentRowStartIndex)
+      this._currSingleRowColumnIndexToCsvColumnIndexMapping.push(cumulativeColumnIndex - this._currentRowStartIndex)
     }
   }
 
@@ -1148,6 +1212,7 @@ export class Parser {
       value = this._input.substr(this._cursor)
     }
     this._row.push(value)
+    this.addFieldPosition(this._fieldStart, this._inputLen - 1) //TODO ???
     this._cursor = this._inputLen	// important in case parsing is paused
     this.pushRow(this._row)
     return this.returnable()
@@ -1179,7 +1244,8 @@ export class Parser {
         columnIsQuoted: this._columnIsQuoted,
         cellIsQuotedInfo: this._cellIsQuotedInfo,
         outColumnIndexToCsvColumnIndexMapping: this._outColumnIndexToCsvColumnIndexMapping,
-        outLineIndexToCsvLineIndexMapping: null //is set in post-processing
+        outLineIndexToCsvLineIndexMapping: null, //is set in post-processing
+        outCsvFieldToInputPositionMapping: this._outFieldPositionMapping,
       },
     }
 
@@ -1243,6 +1309,13 @@ export class Parser {
     return spaceLength
   }
 
+  // New helper method to record a field's original positions
+  private addFieldPosition(start: number, end: number) {
+    this._currentRowFieldPositions.push({
+      start,
+      end
+    })
+  }
 }
 
 class UnParser {
