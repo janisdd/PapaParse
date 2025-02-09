@@ -808,7 +808,7 @@ export class Parser {
         if (i !== rows.length - 1) {
           this._cursor += this._newlineString.length
         }
-        if (this._comments && rowString.substr(0, commentsLen) === this._comments) {
+        if (this._comments && rowString.substr(0, commentsLen) === this._comments && !isCommentRow) {
           continue
         }
 
@@ -840,6 +840,21 @@ export class Parser {
           }
         }
 
+        if (!this._isGuessingDelimiter && this._outFieldPositionMapping) {
+          //set cell position info
+          this._currentRowFieldPositions = []
+          let currFieldStart = rowStart
+          for (let j = 0; j < _row.length; j++) {
+            this._currentRowFieldPositions.push({
+              start: currFieldStart,
+              end: currFieldStart + _row[j].length
+            })
+            //we can always add the delim len because after the last cell there is no next cell (start is not used again)
+            currFieldStart += _row[j].length + delimLen
+          }
+          //push row will add field positions
+        }
+
         this.pushRow(_row)
 
 
@@ -848,21 +863,6 @@ export class Parser {
           return this.returnable()
         }
 
-        if (!this._isGuessingDelimiter && this._outFieldPositionMapping) {
-          //set cell position info
-          const currentRowFieldPositions: FieldPosition[] = []
-          let currFieldStart = rowStart
-          for (let j = 0; j < _row.length; j++) {
-            currentRowFieldPositions.push({
-              start: currFieldStart,
-              end: currFieldStart + _row[j].length
-            })
-            currFieldStart += _row[j].length + (j === 0
-                                                ? 0
-                                                : delimLen)
-          }
-          this._outFieldPositionMapping.push(currentRowFieldPositions)
-        }
 
       }
 
@@ -989,7 +989,8 @@ export class Parser {
             currentFieldEndIndex = this._quoteSearch + spacesBetweenQuoteAndDelimiter + delimLen
             this.addColumnIndexMapping(currentFieldEndIndex)
 
-            this.addFieldPosition(this._fieldStart, currentFieldEndIndex - delimLen)
+            //+1 because end is exclusive but start is inclusive: "A" -> 0,3
+            this.addFieldPosition(this._fieldStart, currentFieldEndIndex + 1 - delimLen)
             this._row.push(input.substring(this._cursor, this._quoteSearch).replace(quoteCharRegex, this._quoteChar))
             this._cursor = this._quoteSearch + 1 + spacesBetweenQuoteAndDelimiter + delimLen
 
@@ -1010,7 +1011,8 @@ export class Parser {
             currentFieldEndIndex = this._quoteSearch + spacesBetweenQuoteAndNewLine
             this.addColumnIndexMapping(currentFieldEndIndex)
 
-            this.addFieldPosition(this._fieldStart, currentFieldEndIndex)
+            //+1 because end is exclusive but start is inclusive: "A" -> 0,3
+            this.addFieldPosition(this._fieldStart, currentFieldEndIndex + 1)
             this._row.push(input.substring(this._cursor, this._quoteSearch).replace(quoteCharRegex, this._quoteChar))
             this.saveRow(this._quoteSearch + 1 + spacesBetweenQuoteAndNewLine + newlineLen)
             nextDelim = input.indexOf(this._delim, this._cursor)	// because we may have skipped the nextDelim in the quoted field
@@ -1137,7 +1139,8 @@ export class Parser {
       if (this._nextNewline !== -1) {
         currentFieldEndIndex = this._nextNewline - 1
         this.addColumnIndexMapping(currentFieldEndIndex)
-        this.addFieldPosition(this._fieldStart, currentFieldEndIndex)
+        //+1 because end is exclusive
+        this.addFieldPosition(this._fieldStart, currentFieldEndIndex + 1)
         this._row.push(input.substring(this._cursor, this._nextNewline))
         this.saveRow(this._nextNewline + newlineLen)
 
@@ -1153,7 +1156,8 @@ export class Parser {
 
     currentFieldEndIndex = input.length - 1
     this.addColumnIndexMapping(currentFieldEndIndex)
-    this.addFieldPosition(this._fieldStart, currentFieldEndIndex)
+    //+1 because end is exclusive
+    this.addFieldPosition(this._fieldStart, currentFieldEndIndex + 1)
 
     return this.finish()
   }
@@ -1212,7 +1216,8 @@ export class Parser {
       value = this._input.substr(this._cursor)
     }
     this._row.push(value)
-    this.addFieldPosition(this._fieldStart, this._inputLen - 1) //TODO ???
+    //we don't need to add cell position mapping here because
+    //everywhere we call this method we manually add the mapping already
     this._cursor = this._inputLen	// important in case parsing is paused
     this.pushRow(this._row)
     return this.returnable()
