@@ -939,6 +939,132 @@ const CELL_SOURCE_LOCATION_INFO_TESTS: CellQuotesTestType[] = [
     ]
   },
 
+  {
+    description: "extra space around delimiter",
+    input: `a, "b","c" , "d" ,end1\n"b ","c" , "d" , end2 , a,b ,,`,
+    config: {delimiter: `,`},
+    expectedCellPositionMapping: [
+      [
+        {
+          start: 0,
+          end: 1
+        },
+        {
+          start: 2,
+          end: 6
+        },
+        {
+          start: 7,
+          end: 11
+        },
+        {
+          start: 12,
+          end: 17
+        },
+        {
+          start: 18,
+          end: 22
+        },
+      ],
+      [
+        {
+          start: 23,
+          end: 27
+        },
+        {
+          start: 28,
+          end: 32
+        },
+        {
+          start: 33,
+          end: 38
+        },
+        {
+          start: 39,
+          end: 45
+        },
+        {
+          start: 46,
+          end: 48
+        },
+        {
+          start: 49,
+          end: 51
+        },
+        {
+          start: 52,
+          end: 52
+        },
+        {
+          start: 53,
+          end: 53
+        },
+      ],
+    ]
+  },
+  {
+    description: "extra space around multi char delimiter",
+    input: `a,, "b",,"c" ,, "d" ,,end1\n"b ",,"c" ,, "d" ,, end2 ,, a,,b ,,,,`,
+    config: {delimiter: `,,`},
+    expectedCellPositionMapping: [
+      [
+        {
+          start: 0,
+          end: 1
+        },
+        {
+          start: 3,
+          end: 7
+        },
+        {
+          start: 9,
+          end: 13
+        },
+        {
+          start: 15,
+          end: 20
+        },
+        {
+          start: 22,
+          end: 26
+        },
+      ],
+      [
+        {
+          start: 27,
+          end: 31
+        },
+        {
+          start: 33,
+          end: 37
+        },
+        {
+          start: 39,
+          end: 44
+        },
+        {
+          start: 46,
+          end: 52
+        },
+        {
+          start: 54,
+          end: 56
+        },
+        {
+          start: 58,
+          end: 60
+        },
+        {
+          start: 62,
+          end: 62
+        },
+        {
+          start: 64,
+          end: 64
+        },
+      ],
+    ]
+  },
 ]
 
 //make sure the indices in the tests are correct (when we use substring we should get the cell string values back)
