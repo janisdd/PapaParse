@@ -16,7 +16,10 @@ export default defineConfig({
     },
   },
   test: {
-    include: ['tests/**/*']
+    include: ['tests/**/*'],
+    coverage: {
+      reporter: ['text', 'json', 'html'],
+    },
   },
   plugins: [
     dts({

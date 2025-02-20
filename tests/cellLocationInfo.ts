@@ -16,6 +16,7 @@ type CellQuotesTestType = {
 }
 
 /*
+
 TODO preview mode
 TODO different new line chars?
 
@@ -517,6 +518,32 @@ const CELL_SOURCE_LOCATION_INFO_TESTS: CellQuotesTestType[] = [
   },
 
   {
+    description: "delimiter in quotes",
+    input: `"a","b,c,d",e," a,b , c, ,"`,
+    config: {delimiter: `,`},
+    expectedCellPositionMapping: [
+      [
+        {
+          start: 0,
+          end: 3
+        },
+        {
+          start: 4,
+          end: 11
+        },
+        {
+          start: 12,
+          end: 13
+        },
+        {
+          start: 14,
+          end: 27
+        },
+      ],
+    ]
+  },
+
+  {
     description: "missing closing quote 1",
     input: `"a",b,"c`,
     config: {delimiter: `,`},
@@ -703,6 +730,115 @@ const CELL_SOURCE_LOCATION_INFO_TESTS: CellQuotesTestType[] = [
         {
           start: 69,
           end: 74
+        },
+      ],
+    ]
+  },
+
+  {
+    description: "comment + escaped quotes",
+    input: `"a","b""c "\n#comm""\n"#""#`,
+    config: {delimiter: `,`, comments: `#`},
+    expectedCellPositionMapping: [
+      [
+        {
+          start: 0,
+          end: 3
+        },
+        {
+          start: 4,
+          end: 11
+        },
+      ],
+      [
+        {
+          start: 20,
+          end: 25
+        },
+      ],
+    ]
+  },
+  {
+    description: "tracked comment + escaped quotes",
+    input: `"a","b""c "\n#comm""\n"#""#`,
+    config: {delimiter: `,`, comments: `#`, rowInsertCommentLines_commentsString: `#`},
+    expectedCellPositionMapping: [
+      [
+        {
+          start: 0,
+          end: 3
+        },
+        {
+          start: 4,
+          end: 11
+        },
+      ],
+      [
+        {
+          start: 12,
+          end: 19
+        },
+      ],
+      [
+        {
+          start: 20,
+          end: 25
+        },
+      ],
+    ]
+  },
+
+  {
+    description: "multi line fields + escaped quotes",
+    input: `"a","a\nb""c","a\nb""\nc"\n"""ab","ab""","""ab"""\n"""\na\nb","a\nb""\n","\n""a\nb\n"""\n"abc\n""\n"`,
+    config: {delimiter: `,`, comments: `#`},
+    expectedCellPositionMapping: [
+      [
+        {
+          start: 0,
+          end: 3
+        },
+        {
+          start: 4,
+          end: 12
+        },
+        {
+          start: 13,
+          end: 22
+        },
+      ],
+      [
+        {
+          start: 23,
+          end: 29
+        },
+        {
+          start: 30,
+          end: 36
+        },
+        {
+          start: 37,
+          end: 45
+        },
+      ],
+      [
+        {
+          start: 46,
+          end: 54
+        },
+        {
+          start: 55,
+          end: 63
+        },
+        {
+          start: 64,
+          end: 75
+        },
+      ],
+      [
+        {
+          start: 76,
+          end: 85
         },
       ],
     ]
