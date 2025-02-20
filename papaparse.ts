@@ -952,7 +952,7 @@ export class Parser {
           // Closing quote at EOF
           if (this._quoteSearch === this._inputLen - 1) {
             const value = input.substring(this._cursor, this._quoteSearch).replace(quoteCharRegex, this._quoteChar)
-            const fieldEnd = this._quoteSearch
+            const fieldEnd = this._quoteSearch + 1
             this.addFieldPosition(this._fieldStart, fieldEnd)
             currentFieldEndIndex = this._quoteSearch
             this.addColumnIndexMapping(currentFieldEndIndex)
@@ -1048,7 +1048,9 @@ export class Parser {
       }
 
       // Comment found at start of new line
-      if (this._comments && this._row.length === 0 && input.substr(this._cursor, commentsLen) === this._comments) {
+      if (this._comments && !this._rowInsertCommentLines_commentsString
+        && this._row.length === 0
+        && input.substr(this._cursor, commentsLen) === this._comments) {
 
         // for comments we don't call pushRow, so we need to end the cell quote info manually
         // but for comments we don't want the quote info, so just reset it
@@ -1073,15 +1075,16 @@ export class Parser {
       }
 
       // eslint-disable-next-line camelcase
-      if (this._row.length === 0 && this._rowInsertCommentLines_commentsString && input.substr(this._cursor,
-        this._rowInsertCommentLines_commentsString.length
-      ) === this._rowInsertCommentLines_commentsString) {
+      if (this._row.length === 0
+        && this._rowInsertCommentLines_commentsString
+        && input.substr(this._cursor, this._rowInsertCommentLines_commentsString.length
+        ) === this._rowInsertCommentLines_commentsString) {
 
         if (this._nextNewline === -1) {
           //add the last comment
 
           // eslint-disable-next-line camelcase
-          currentFieldEndIndex = input.length - 1
+          currentFieldEndIndex = input.length
           this.addColumnIndexMapping(currentFieldEndIndex)
 
           this.addFieldPosition(this._fieldStart, currentFieldEndIndex)
@@ -1090,7 +1093,7 @@ export class Parser {
           return this.returnable()
         }
 
-        currentFieldEndIndex = this._nextNewline - 1
+        currentFieldEndIndex = this._nextNewline
         this.addColumnIndexMapping(currentFieldEndIndex)
 
         this.addFieldPosition(this._fieldStart, currentFieldEndIndex)
