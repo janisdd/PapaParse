@@ -16,17 +16,10 @@ type CellQuotesTestType = {
 }
 
 /*
-comments
-multi line
-multi line multiple cells
-
 TODO preview mode
 TODO different new line chars?
 
-TODO include quotes? yes
 include before & after whitespace? yes?
-
-TODO add tests with errors but: Find closing quote failed
  */
 
 const CELL_SOURCE_LOCATION_INFO_TESTS: CellQuotesTestType[] = [
@@ -524,6 +517,73 @@ const CELL_SOURCE_LOCATION_INFO_TESTS: CellQuotesTestType[] = [
   },
 
   {
+    description: "missing closing quote 1",
+    input: `"a",b,"c`,
+    config: {delimiter: `,`},
+    expectedCellPositionMapping: [
+      [
+        {
+          start: 0,
+          end: 3
+        },
+        {
+          start: 4,
+          end: 5
+        },
+        {
+          start: 6,
+          end: 8
+        },
+
+      ],
+    ]
+  },
+  {
+    description: "missing closing quote 2",
+    input: `"a",b," c   d`,
+    config: {delimiter: `,`},
+    expectedCellPositionMapping: [
+      [
+        {
+          start: 0,
+          end: 3
+        },
+        {
+          start: 4,
+          end: 5
+        },
+        {
+          start: 6,
+          end: 13
+        },
+
+      ],
+    ]
+  },
+  {
+    description: "missing closing quote 3",
+    input: `"a",b,"c   \n\n\n`,
+    config: {delimiter: `,`},
+    expectedCellPositionMapping: [
+      [
+        {
+          start: 0,
+          end: 3
+        },
+        {
+          start: 4,
+          end: 5
+        },
+        {
+          start: 6,
+          end: 12
+        },
+
+      ],
+    ]
+  },
+
+  {
     description: "multi line fields",
     input: `" a ","b\nc","e\n\nf"\n"a\nb\n\nc","\na","b",c,"\n","\n\n","\n\n\n"\n" \n ","\na\n"`,
     config: {delimiter: `,`},
@@ -643,6 +703,101 @@ const CELL_SOURCE_LOCATION_INFO_TESTS: CellQuotesTestType[] = [
         {
           start: 69,
           end: 74
+        },
+      ],
+    ]
+  },
+
+  {
+    description: "multi line fields with comments",
+    input: `#start\n#line2\n" a ","b\nc","e\n\nf"\n# comment \n"a\nb\n\nc",k,"\np\n"\n#end"`,
+    config: {delimiter: `,`, comments: `#`},
+    expectedCellPositionMapping: [
+      [
+        {
+          start: 14,
+          end: 19
+        },
+        {
+          start: 20,
+          end: 25
+        },
+        {
+          start: 26,
+          end: 32
+        },
+      ],
+      [
+        {
+          start: 44,
+          end: 52
+        },
+        {
+          start: 53,
+          end: 54
+        },
+        {
+          start: 55,
+          end: 60
+        },
+      ],
+    ]
+  },
+  {
+    description: "multi line fields with tracked comments",
+    input: `#start\n#line2\n" a ","b\nc","e\n\nf"\n# comment \n"a\nb\n\nc",k,"\np\n"\n#end"`,
+    config: {delimiter: `,`, comments: `#`, rowInsertCommentLines_commentsString: `#`},
+    expectedCellPositionMapping: [
+      [
+        {
+          start: 0,
+          end: 6
+        },
+      ],
+      [
+        {
+          start: 7,
+          end: 13
+        },
+      ],
+      [
+        {
+          start: 14,
+          end: 19
+        },
+        {
+          start: 20,
+          end: 25
+        },
+        {
+          start: 26,
+          end: 32
+        },
+      ],
+      [
+        {
+          start: 33,
+          end: 43
+        },
+      ],
+      [
+        {
+          start: 44,
+          end: 52
+        },
+        {
+          start: 53,
+          end: 54
+        },
+        {
+          start: 55,
+          end: 60
+        },
+      ],
+      [
+        {
+          start: 61,
+          end: 66
         },
       ],
     ]

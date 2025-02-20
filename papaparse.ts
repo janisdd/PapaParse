@@ -935,8 +935,8 @@ export class Parser {
             })
 
             const fieldEnd = this._nextNewline === -1
-                             ? this._inputLen - 1
-                             : this._nextNewline - 1
+                             ? this._inputLen
+                             : this._nextNewline + 1
 
             this.addFieldPosition(this._fieldStart, fieldEnd)
 
