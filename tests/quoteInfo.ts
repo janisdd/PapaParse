@@ -123,7 +123,7 @@ const PRESERVE_QUOTE_INFORMATION_CELLS_TESTS: CellQuotesTestType[] = [
     expectedCellQuotes: [[false, false, false], [false], [false, true]]
   },
   {
-    description: "normal mode, with comment 1, different quote char",
+    description: "normal mode, with comment 1, different quote char, ignore comments",
     input: 'a,b, c\n#test\na,+b+',
     config: {
       quoteChar: '+',
@@ -288,7 +288,7 @@ const PRESERVE_QUOTE_INFORMATION_CELLS_KEEP_COMMENT_INFOS_TESTS: CellQuotesTestT
       comments: '#',
       rowInsertCommentLines_commentsString: '#',
     },
-    expectedCellQuotes: [[false, false, false], [false, true]]
+    expectedCellQuotes: [[false, false, false], [false], [false, true]]
   },
   {
     description: "normal mode, with comment 1, different quote char 2 (no comment char)",
@@ -445,7 +445,7 @@ const PRESERVE_QUOTE_INFORMATION_COLUMNS_TESTS: ColumnQuotesTestType[] = [
     expectedColumnQuotes: [false, false, false]
   },
   {
-    description: "normal mode, with comment 1, different quote char",
+    description: "normal mode, with comment 1, different quote char, ignore comments",
     input: 'a,+b+,+1 2, 3 +',
     config: {
       quoteChar: '+',
@@ -625,7 +625,7 @@ const PRESERVE_QUOTE_INFORMATION_COLUMNS_KEEP_COMMENT_INFOS_TESTS: ColumnQuotesT
     expectedColumnQuotes: [false, false, false]
   },
   {
-    description: "normal mode, with comment 1, different quote char",
+    description: "normal mode, with comment 1, different quote char, keep comments",
     input: 'a,+b+,+1 2, 3 +',
     config: {
       quoteChar: '+',

@@ -677,6 +677,7 @@ const PARSE_TESTS: TestType[] = [
         cellIsQuotedInfo: null,
         outLineIndexToCsvLineIndexMapping: null,
         outColumnIndexToCsvColumnIndexMapping: null,
+        outCsvFieldToInputPositionMapping: null,
       }
     }
   },
@@ -695,6 +696,7 @@ const PARSE_TESTS: TestType[] = [
         cellIsQuotedInfo: null,
         outLineIndexToCsvLineIndexMapping: null,
         outColumnIndexToCsvColumnIndexMapping: null,
+        outCsvFieldToInputPositionMapping: null,
       }
     }
   },
@@ -713,6 +715,7 @@ const PARSE_TESTS: TestType[] = [
         cellIsQuotedInfo: null,
         outLineIndexToCsvLineIndexMapping: null,
         outColumnIndexToCsvColumnIndexMapping: null,
+        outCsvFieldToInputPositionMapping: null,
       }
     }
   },
@@ -731,6 +734,7 @@ const PARSE_TESTS: TestType[] = [
         cellIsQuotedInfo: null,
         outLineIndexToCsvLineIndexMapping: null,
         outColumnIndexToCsvColumnIndexMapping: null,
+        outCsvFieldToInputPositionMapping: null,
       }
     }
   },
@@ -749,6 +753,7 @@ const PARSE_TESTS: TestType[] = [
         cellIsQuotedInfo: null,
         outLineIndexToCsvLineIndexMapping: null,
         outColumnIndexToCsvColumnIndexMapping: null,
+        outCsvFieldToInputPositionMapping: null,
       }
     }
   },
@@ -767,6 +772,7 @@ const PARSE_TESTS: TestType[] = [
         cellIsQuotedInfo: null,
         outLineIndexToCsvLineIndexMapping: null,
         outColumnIndexToCsvColumnIndexMapping: null,
+        outCsvFieldToInputPositionMapping: null,
       }
     }
   },
@@ -785,6 +791,7 @@ const PARSE_TESTS: TestType[] = [
         cellIsQuotedInfo: null,
         outLineIndexToCsvLineIndexMapping: null,
         outColumnIndexToCsvColumnIndexMapping: null,
+        outCsvFieldToInputPositionMapping: null,
       }
     }
   },
@@ -803,6 +810,7 @@ const PARSE_TESTS: TestType[] = [
         cellIsQuotedInfo: null,
         outLineIndexToCsvLineIndexMapping: null,
         outColumnIndexToCsvColumnIndexMapping: null,
+        outCsvFieldToInputPositionMapping: null,
       }
     }
   },

@@ -1239,7 +1239,7 @@ const CUSTOM_TESTS: TestType<any>[] = [
   },
   {
     description: "Should map column indices to csv column indices with second row 9 (normal mode)",
-    expected: [[3, 5, 9], [2, 4, 5], [3]],
+    expected: [[3, 5, 9], [2, 4, 5], [4]],
     run: function(callback) {
       const results = Papa.parse('"1",2,"3" \n 4,5,6\n#end', {
         calcColumnIndexToCsvColumnIndexMapping: true,
