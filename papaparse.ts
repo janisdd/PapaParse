@@ -1,6 +1,6 @@
 /* @license
 Papa Parse
-v5.0.0-custom-1.2.0
+v5.0.0-custom-2.0.0
 https://github.com/mholt/PapaParse
 License: MIT
 commit: 49170b76b382317356c2f707e2e4191430b8d495
@@ -8,10 +8,19 @@ fork -> https://github.com/janisdd/PapaParse/tree/fix609_main
 */
 /*
 
-NOTE that the minified version is not in sync!!
-you need to manually compress it, e.g. with https://javascript-minifier.com/
+NOTE that the built version is not in sync!!
 
 changelog: (latest first)
+
+- manually converted to typescript
+  - added types
+  - removed some unused code (node js stuff, streaming, ...)
+  - dist includes real .d.ts file
+  - dist includes umd version
+  - dist includes minified version
+  - changed to vitest for testing
+- added tracking of csv field to input position mapping (includes extra spaces, added tests for this)
+  - some features are not supported in preview mode (e.g. most mappings)
 
 - started to track versions with `-custom-1.0.0` suffix
 
