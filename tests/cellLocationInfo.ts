@@ -1,5 +1,5 @@
 import {assert, describe, it} from 'vitest'
-import {Papa, ParseConfig, ParseParseResult} from '../papaparse'
+import {Papa, ParseConfig, ParseResult} from '../papaparse'
 
 
 type CsvFieldPosition = {
@@ -1118,7 +1118,7 @@ const CELL_SOURCE_LOCATION_INFO_TESTS: CellQuotesTestType[] = [
 describe('Parse PRESERVE CELL POSITION INFORMATION', function() {
   function generateTest(test: CellQuotesTestType) {
     it(test.description, function() {
-      let actual: ParseParseResult | Error
+      let actual: ParseResult | Error
 
       try {
         actual = Papa.parse(test.input, {

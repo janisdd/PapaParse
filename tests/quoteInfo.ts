@@ -1,5 +1,5 @@
 import {assert, describe, it} from 'vitest'
-import {Papa, ParseConfig, ParseParseResult} from '../papaparse'
+import {Papa, ParseConfig, ParseResult} from '../papaparse'
 
 
 type CellQuotesTestType = {
@@ -712,7 +712,7 @@ const PRESERVE_QUOTE_INFORMATION_COLUMNS_KEEP_COMMENT_INFOS_TESTS: ColumnQuotesT
 describe('Parse PRESERVE CELL QUOTES INFORMATION Tests', function() {
   function generateTest(test: CellQuotesTestType) {
     it(test.description, function() {
-      let actual: ParseParseResult | Error
+      let actual: ParseResult | Error
 
       try {
         actual = Papa.parse(test.input, {
@@ -743,7 +743,7 @@ describe('Parse PRESERVE CELL QUOTES INFORMATION Tests', function() {
 describe('Parse PRESERVE COLUMN QUOTES INFORMATION Tests', function() {
   function generateTest(test: ColumnQuotesTestType) {
     it(test.description, function() {
-      let actual: ParseParseResult | Error
+      let actual: ParseResult | Error
 
       try {
         actual = Papa.parse(test.input, {

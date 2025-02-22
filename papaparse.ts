@@ -113,7 +113,7 @@ export type ParseConfigAll = {
    * quotes are normally ignored as they don't change the resulting data
    * but for some applications we need to know if a cell was quoted
    * true: the result will contain the information if a cell was quoted or not
-   * see {@link ParseParseResult.columnIsQuoted} and {@link ParseParseResult.cellIsQuotedInfo}
+   * see {@link ParseResult.columnIsQuoted} and {@link ParseResult.cellIsQuotedInfo}
    * false: information will be null
    */
   retainQuoteInformation: boolean
@@ -152,7 +152,7 @@ export type ParseConfigAll = {
 }
 export type ParseConfig = Partial<ParseConfigAll>
 
-export type ParseParseResult = {
+export type ParseResult = {
   data: string[][]
   errors: ParseError[]
   /**
@@ -414,7 +414,7 @@ class ParserHandle {
     return result
   }
 
-  _processResults(result: ParseParseResult, hasDelimiterError: boolean) {
+  _processResults(result: ParseResult, hasDelimiterError: boolean) {
     if (result && hasDelimiterError) {
       this._addError(result, 'Delimiter', 'UndetectableDelimiter', 'Unable to auto-detect delimiting character; defaulted to \'' + Papa.DefaultDelimiter + '\'')
     }
@@ -600,7 +600,7 @@ class ParserHandle {
            : '\r'
   }
 
-  _addError(result: ParseParseResult, type: string, code: string, msg: string, row?: number) {
+  _addError(result: ParseResult, type: string, code: string, msg: string, row?: number) {
     result.errors.push({
       type: type,
       code: code,
@@ -783,7 +783,7 @@ export class Parser {
 
   }
 
-  parse(input: string): ParseParseResult {
+  parse(input: string): ParseResult {
     this._input = input
     this._inputLen = input.length
     const _config = this._config
@@ -1249,9 +1249,9 @@ export class Parser {
   }
 
   /** Returns an object with the results, errors, and meta. */
-  returnable(): ParseParseResult {
+  returnable(): ParseResult {
 
-    const result: ParseParseResult = {
+    const result: ParseResult = {
       data: this._data,
       errors: this._errors,
       meta: {
