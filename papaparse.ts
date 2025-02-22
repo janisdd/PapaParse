@@ -1358,6 +1358,9 @@ class UnParser {
 
   _determineFieldHasQuotesFunc: UnparseConfigAll['determineFieldHasQuotesFunc']
 
+  /**
+   * if the first cell of a row starts with this string then the row is treated as a comment row -> only the first cell is used
+   */
   _rowInsertCommentLines_commentsString: string | null
 
   _quoteEmptyOrNullFields: boolean
