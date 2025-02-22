@@ -1,12 +1,12 @@
 import {assert, describe, it} from 'vitest'
-import {Papa, ParseUnparseConfig} from '../papaparse'
+import {Papa, UnparseConfig} from '../papaparse'
 
 const RECORD_SEP = String.fromCharCode(30)
 
 type TestType = {
   description: string
   input: Array<Array<string | null | undefined>>
-  config?: ParseUnparseConfig
+  config?: UnparseConfig
   notes?: string
   expected: string
 }

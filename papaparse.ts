@@ -220,7 +220,7 @@ export interface ParseError {
   index?: number
 }
 
-export type ParseUnparseConfigAll = {
+export type UnparseConfigAll = {
 
   delimiter: string
   newlineChar: string
@@ -255,7 +255,7 @@ export type ParseUnparseConfigAll = {
    */
   rowInsertCommentLines_commentsString: string | null
 }
-export type ParseUnparseConfig = Partial<ParseUnparseConfigAll>
+export type UnparseConfig = Partial<UnparseConfigAll>
 
 /**
  * some options might be unset or will bet auto-detected,
@@ -293,7 +293,7 @@ export const __parseConfigUserDefaults: ParseConfigAll = {
 /**
  * only exports to inspect defaults
  */
-export const __unparseConfigUserDefaults: ParseUnparseConfigAll = {
+export const __unparseConfigUserDefaults: UnparseConfigAll = {
   delimiter: ',',
   newlineChar: '\r\n',
   quoteChar: '"',
@@ -328,8 +328,8 @@ export class Papa {
     return results
   }
 
-  static unparse(data: Array<Array<string | null | undefined>>, _config?: ParseUnparseConfig) {
-    const _realConfig: ParseUnparseConfigAll = {
+  static unparse(data: Array<Array<string | null | undefined>>, _config?: UnparseConfig) {
+    const _realConfig: UnparseConfigAll = {
       ...__unparseConfigUserDefaults,
       ..._config
     }
@@ -1356,7 +1356,7 @@ class UnParser {
 
   _quoteTrailingSpace: boolean
 
-  _determineFieldHasQuotesFunc: ParseUnparseConfigAll['determineFieldHasQuotesFunc']
+  _determineFieldHasQuotesFunc: UnparseConfigAll['determineFieldHasQuotesFunc']
 
   _rowInsertCommentLines_commentsString: string | null
 
@@ -1364,7 +1364,7 @@ class UnParser {
 
   _quoteCharRegex: RegExp
 
-  constructor(_config: ParseUnparseConfigAll) {
+  constructor(_config: UnparseConfigAll) {
     this._data = []
     this._quotes = _config.quotes
     this._delimiter = _config.delimiter
