@@ -470,7 +470,7 @@ const PRESERVE_QUOTE_INFORMATION_CELLS_TESTS: CellQuotesTestType[] = [
     description: "different new line",
     data: [['#12', '1'], ['1', '23'], ['#comm'], []],
     config: {
-      newlineChar: '\r\n',
+      newline: '\r\n',
       delimiter: ',',
       rowInsertCommentLines_commentsString: '#',
     },
@@ -510,7 +510,7 @@ describe('Parse PRESERVE CELL QUOTES INFORMATION Tests', function() {
       try {
         actual = Papa.unparse(test.data, {
           calcCsvFieldToInputPositionMapping: true,
-          newlineChar: '\n',
+          newline: '\n',
           ...test.config,
         })
       } catch (e) {

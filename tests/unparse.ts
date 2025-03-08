@@ -91,19 +91,19 @@ const UNPARSE_TESTS: TestType[] = [
   {
     description: "Custom line ending (\\r)",
     input: [['a', 'b', 'c'], ['d', 'e', 'f']],
-    config: { newlineChar: '\r' },
+    config: { newline: '\r' },
     expected: 'a,b,c\rd,e,f'
   },
   {
     description: "Custom line ending (\\n)",
     input: [['a', 'b', 'c'], ['d', 'e', 'f']],
-    config: { newlineChar: '\n' },
+    config: { newline: '\n' },
     expected: 'a,b,c\nd,e,f'
   },
   {
     description: "Custom, but strange, line ending ($)",
     input: [['a', 'b', 'c'], ['d', 'e', 'f']],
-    config: { newlineChar: '$' },
+    config: { newline: '$' },
     expected: 'a,b,c$d,e,f'
   },
   {

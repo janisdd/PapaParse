@@ -239,7 +239,7 @@ export interface UnparseResultMeta {
 export type UnparseConfigAll = {
 
   delimiter: string
-  newlineChar: string
+  newline: string
   quoteChar: string
   /**
    * empty to use quote char
@@ -313,7 +313,7 @@ export const __parseConfigUserDefaults: ParseConfigAll = {
  */
 export const __unparseConfigUserDefaults: UnparseConfigAll = {
   delimiter: ',',
-  newlineChar: '\r\n',
+  newline: '\r\n',
   quoteChar: '"',
   escapeChar: '', //empty to use quote char
   skipEmptyLines: false,
@@ -1393,7 +1393,7 @@ class UnParser {
     this._data = []
     this._quotes = _config.quotes
     this._delimiter = _config.delimiter
-    this._newlineChar = _config.newlineChar
+    this._newlineChar = _config.newline
     this._quoteChar = _config.quoteChar
     this._skipEmptyLines = _config.skipEmptyLines === 'greedy' || _config.skipEmptyLines
     this._isGreedySkipEmptyLines = _config.skipEmptyLines === 'greedy'
