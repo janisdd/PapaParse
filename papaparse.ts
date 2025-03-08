@@ -12,6 +12,10 @@ NOTE that the built version is not in sync!!
 
 changelog: (latest first)
 
+- changed unparse result from string to object
+  - now includes meta data about the result
+    - mapping from csv fields to string position
+
 - manually converted to typescript
   - added types
   - removed some unused code (node js stuff, streaming, ...)
@@ -220,6 +224,18 @@ export interface ParseError {
   index?: number
 }
 
+export type UnparseResult = {
+  csv: string
+  /**
+   * meta information about the unparsing
+   */
+  meta: UnparseResultMeta
+}
+
+export interface UnparseResultMeta {
+  outCsvFieldToInputPositionMapping: FieldPosition[][] | null
+}
+
 export type UnparseConfigAll = {
 
   delimiter: string
@@ -254,6 +270,8 @@ export type UnparseConfigAll = {
    * see {@link ParseConfigAll.rowInsertCommentLines_commentsString}
    */
   rowInsertCommentLines_commentsString: string | null
+
+  calcCsvFieldToInputPositionMapping: boolean
 }
 export type UnparseConfig = Partial<UnparseConfigAll>
 
@@ -304,7 +322,8 @@ export const __unparseConfigUserDefaults: UnparseConfigAll = {
   quoteLeadingSpace: true,
   quoteTrailingSpace: true,
   determineFieldHasQuotesFunc: undefined,
-  rowInsertCommentLines_commentsString: null
+  rowInsertCommentLines_commentsString: null,
+  calcCsvFieldToInputPositionMapping: false,
 }
 
 export class Papa {
@@ -618,6 +637,7 @@ class ParserHandle {
    */
   static _testEmptyLine(line: Array<string | null | undefined>, greedy: boolean): boolean {
     //tested: ['', null, undefined].join('').trim() --> ''
+    //checking for line.length = 0 is not needed because all loops will not iterate once
     return greedy
            ? line.join('').trim() === ''
            : line.length === 1 && (line[0] === null || line[0] === undefined || line[0].length === 0)
@@ -1367,6 +1387,8 @@ class UnParser {
 
   _quoteCharRegex: RegExp
 
+  _outFieldPositionMapping: Array<Array<FieldPosition>> | null
+
   constructor(_config: UnparseConfigAll) {
     this._data = []
     this._quotes = _config.quotes
@@ -1386,6 +1408,9 @@ class UnParser {
                          ? _config.escapeChar + this._quoteChar
                          : this._quoteChar + this._quoteChar
 
+    this._outFieldPositionMapping = _config.calcCsvFieldToInputPositionMapping
+                                    ? []
+                                    : null
     //some checks
 
     //we could use the check from parse: if (Papa.BAD_DELIMITERS.indexOf(this._delimiter) > -1) {
@@ -1398,7 +1423,7 @@ class UnParser {
 
   }
 
-  unparse(_data: Array<Array<string | null | undefined>>): string {
+  unparse(_data: Array<Array<string | null | undefined>>): UnparseResult {
     this._data = _data
 
     let csv = ''
@@ -1409,34 +1434,74 @@ class UnParser {
       let emptyLine = false
       const nullLine = this._data[row].length === 0
 
+      const currentRowFieldPositions: FieldPosition[] = []
+      let currFieldPos = 0
+
       if (this._skipEmptyLines) {
         emptyLine = ParserHandle._testEmptyLine(this._data[row], this._isGreedySkipEmptyLines)
       }
 
-      if (!emptyLine) {
+      if (emptyLine) {
+        continue
+      }
 
-        // eslint-disable-next-line camelcase
-        if (this._data[row].length > 0 && this._rowInsertCommentLines_commentsString) {
-          const firstCellData = this._data[row][0]
-          if (typeof firstCellData === 'string' && firstCellData.startsWith(this._rowInsertCommentLines_commentsString)) {
-            csv += firstCellData + this._newlineChar
-            continue
-          }
-        }
+      // eslint-disable-next-line camelcase
+      if (this._data[row].length > 0 && this._rowInsertCommentLines_commentsString) {
+        const firstCellData = this._data[row][0]
+        if (typeof firstCellData === 'string' && firstCellData.startsWith(this._rowInsertCommentLines_commentsString)) {
+          currFieldPos = csv.length
+          csv += firstCellData
 
-        for (let col = 0; col < maxCol; col++) {
-          if (col > 0 && !nullLine) {
-            csv += this._delimiter
+          if (this._outFieldPositionMapping) {
+            currentRowFieldPositions.push({
+              start: currFieldPos,
+              end: csv.length,
+            })
+            this._outFieldPositionMapping.push(currentRowFieldPositions)
           }
-          const colIdx = col
-          csv += this.safe(this._data[row][colIdx], row, col)
-        }
-        if (row < this._data.length - 1 && (!this._skipEmptyLines || (maxCol > 0 && !nullLine))) {
+
           csv += this._newlineChar
+          continue
         }
       }
+
+      for (let col = 0; col < maxCol; col++) {
+
+        if (col > 0 && !nullLine) {
+          csv += this._delimiter
+        }
+
+        currFieldPos = csv.length
+
+        const colIdx = col
+        csv += this.safe(this._data[row][colIdx], row, col)
+
+        currentRowFieldPositions.push({
+          start: currFieldPos,
+          end: csv.length,
+        })
+      }
+
+      if (this._outFieldPositionMapping) {
+        if (this._skipEmptyLines && maxCol === 0) {
+          //special case because _testEmptyLine only evaluates to true if we have at least 1 cell (original behavior)
+        } else {
+          this._outFieldPositionMapping.push(currentRowFieldPositions)
+        }
+      }
+
+      if (row < this._data.length - 1 && (!this._skipEmptyLines || (maxCol > 0 && !nullLine))) {
+        csv += this._newlineChar
+      }
+
     }
-    return csv
+
+    return {
+      csv,
+      meta: {
+        outCsvFieldToInputPositionMapping: this._outFieldPositionMapping,
+      }
+    }
   }
 
   /** Encloses a value around quotes if needed (makes a value safe for CSV insertion) */

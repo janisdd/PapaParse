@@ -505,6 +505,15 @@ const PARSE_TESTS: TestType[] = [
     }
   },
   {
+    description: "only empty lines",
+    input: '\n\n\n',
+    config: { skipEmptyLines: true, delimiter: ',' },
+    expected: {
+      data: [],
+      errors: []
+    }
+  },
+  {
     description: "Skip empty lines, with first line only whitespace",
     notes: "A line must be absolutely empty to be considered empty",
     input: ' \na,b,c',

@@ -223,6 +223,12 @@ const UNPARSE_TESTS: TestType[] = [
     expected: 'a,@b+@c+@d+@e@'
   },
   {
+    description: "all empty returns empty string",
+    input: [],
+    config: {skipEmptyLines: true},
+    expected: ''
+  },
+  {
     description: "Returns empty rows when empty rows are passed and skipEmptyLines is false",
     input: [[null, ' '], [], ['1', '2']],
     config: {skipEmptyLines: false},
@@ -342,7 +348,7 @@ describe('Unparse Tests', function() {
       let actual
 
       try {
-        actual = Papa.unparse(test.input, test.config)
+        actual = Papa.unparse(test.input, test.config).csv
       } catch (e) {
         if (e instanceof Error) {
           throw e
