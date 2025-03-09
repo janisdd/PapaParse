@@ -500,6 +500,160 @@ const PRESERVE_QUOTE_INFORMATION_CELLS_TESTS: CellQuotesTestType[] = [
       []
     ]
   },
+  //multi line cells, new line cells are quoted -> +2
+  {
+    description: "multi line cells, comments",
+    data: [['l1\nl2', '12'], ['1', '1\n\n2'], ['#comm'], ['\n1\n2\n', '\n2', '1\r\n\n2']],
+    config: {
+      newline: '\n',
+      delimiter: ',',
+      rowInsertCommentLines_commentsString: '#',
+    },
+    expectedCellPositionMapping: [
+      [
+        {
+          start: 0,
+          end: 7,
+        },
+        {
+          start: 8,
+          end: 10,
+        },
+      ],
+      [
+        {
+          start: 11,
+          end: 12,
+        },
+        {
+          start: 13,
+          end: 19,
+        },
+      ],
+      [
+        {
+          start: 20,
+          end: 25,
+        },
+      ],
+      [
+        {
+          start: 26,
+          end: 33,
+        },
+        {
+          start: 34,
+          end: 38,
+        },
+        {
+          start: 39,
+          end: 46,
+        },
+      ],
+    ]
+  },
+  {
+    description: "multi line cells, comments, different newline",
+    data: [['l1\nl2', '12'], ['1', '1\n\n2'], ['#comm'], ['1\n2\n', '\n2', '1\r\n\n2']],
+    config: {
+      newline: '\r\n',
+      delimiter: ',',
+      rowInsertCommentLines_commentsString: '#',
+    },
+    expectedCellPositionMapping: [
+      [
+        {
+          start: 0,
+          end: 7,
+        },
+        {
+          start: 8,
+          end: 10,
+        },
+      ],
+      [
+        {
+          start: 12,
+          end: 13,
+        },
+        {
+          start: 14,
+          end: 20,
+        },
+      ],
+      [
+        {
+          start: 22,
+          end: 27,
+        },
+      ],
+      [
+        {
+          start: 29,
+          end: 35,
+        },
+        {
+          start: 36,
+          end: 40,
+        },
+        {
+          start: 41,
+          end: 48,
+        },
+      ],
+    ]
+  },
+  {
+    description: "multi line cells, comments, different newline, different delimiter",
+    data: [['l1\nl2', '12'], ['1', '1\n\n2'], ['#comm'], ['1\n2\n', '\n2', '1\r\n\n2']],
+    config: {
+      newline: '\r\n',
+      delimiter: ',,,',
+      rowInsertCommentLines_commentsString: '#',
+    },
+    expectedCellPositionMapping: [
+      [
+        {
+          start: 0,
+          end: 7,
+        },
+        {
+          start: 10,
+          end: 12,
+        },
+      ],
+      [
+        {
+          start: 14,
+          end: 15,
+        },
+        {
+          start: 18,
+          end: 24,
+        },
+      ],
+      [
+        {
+          start: 26,
+          end: 31,
+        },
+      ],
+      [
+        {
+          start: 33,
+          end: 39,
+        },
+        {
+          start: 42,
+          end: 46,
+        },
+        {
+          start: 49,
+          end: 56,
+        },
+      ],
+    ]
+  },
 ]
 
 describe('Parse PRESERVE CELL QUOTES INFORMATION Tests', function() {
