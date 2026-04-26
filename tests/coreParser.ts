@@ -100,6 +100,17 @@ const CORE_PARSER_TESTS: TestType[] = [
     }
   },
   {
+    description: "Quoted fields with blank quote char",
+    input: 'a,b",c",d\n1,2,3"\n"4,5,6',
+    config: {
+      quoteChar: ''
+    },
+    expected: {
+      data: [['a', 'b"', 'c"', 'd'], ['1', '2', '3"'], ['"4', '5', '6']],
+      errors: []
+    }
+  },
+  {
     description: "Quoted fields at end of row with delimiter and line break",
     input: 'a,b,"c,c\nc"\nd,e,f',
     expected: {

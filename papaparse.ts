@@ -1,6 +1,6 @@
 /* @license
 Papa Parse
-v5.0.0-custom-2.0.0
+v5.0.0-custom-2.1.0
 https://github.com/mholt/PapaParse
 License: MIT
 commit: 49170b76b382317356c2f707e2e4191430b8d495
@@ -12,6 +12,7 @@ NOTE that the built version is not in sync!!
 
 changelog: (latest first)
 
+- `quoteChar` in read config can now be empty `''` to ignore quotes while parsing
 - changed unparse result from string to object
   - now includes meta data about the result
     - mapping from csv fields to string position
@@ -392,6 +393,7 @@ class ParserHandle {
         newLine,
         skipEmptyLines,
         comments,
+        _config.quoteChar,
         _config.delimitersToGuess
       )
 
@@ -528,7 +530,7 @@ class ParserHandle {
     }
   }
 
-  _guessDelimiter(input: string, newline: '\r' | '\n' | '\r\n', skipEmptyLines: boolean, comments: string, delimitersToGuess: string[]) {
+  _guessDelimiter(input: string, newline: '\r' | '\n' | '\r\n', skipEmptyLines: boolean, comments: string, quoteChar: string, delimitersToGuess: string[]) {
     let bestDelim: string | null = null
     let bestDelta: number | null = null
     let maxFieldCount: number | null = null
@@ -545,6 +547,7 @@ class ParserHandle {
         comments: comments,
         delimiter: delim,
         newline: newline,
+        quoteChar: quoteChar,
         previewInRows: 10,
         calcColumnIndexToCsvColumnIndexMapping: false,
         calcLineIndexToCsvLineIndexMapping: false,
@@ -776,9 +779,10 @@ export class Parser {
 
     //some checks
 
-    if (!this._quoteChar) {
-      this._quoteChar = Papa.DefaultQuoteChar
-    }
+    // we now allow empty quote char --> then quotes are ALWAYS part of the field value
+    // if (!this._quoteChar) {
+    //   this._quoteChar = Papa.DefaultQuoteChar
+    // }
 
     this._escapeChar = config.escapeChar
                        ? config.escapeChar
@@ -817,7 +821,7 @@ export class Parser {
       return this.returnable()
     }
 
-    if (input.indexOf(this._quoteChar) === -1) {
+    if (!this._quoteChar || input.indexOf(this._quoteChar) === -1) {
 
       const rows = input.split(this._newlineString)
       let rowString = ''
