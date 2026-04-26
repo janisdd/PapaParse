@@ -155,6 +155,12 @@ const UNPARSE_TESTS: TestType[] = [
     expected: '"a","b","c",d\r\n"","","",e'
   },
   {
+    description: "Empty quoteChar should not quote fields",
+    input: [['a', 'b', 'c"'], ['"d', 'e', 'f'], ['1"', '2', '3"'], ['"1"', '2', '3"']],
+    config: { quoteChar: '' },
+    expected: 'a,b,c"\r\n"d,e,f\r\n1",2,3"\r\n"1",2,3"'
+  },
+  {
     description: "Force quotes around null, undefined and empty values with default for quotes and quoteEmptyOrNullFields=true",
     input: [['a', 'b', 'c', 'd'], [null, undefined, '', 'e']],
     config: { quoteEmptyOrNullFields: true }, //also empty = empty string or undefined

@@ -12,7 +12,7 @@ NOTE that the built version is not in sync!!
 
 changelog: (latest first)
 
-- `quoteChar` in read config can now be empty `''` to ignore quotes while parsing
+- `quoteChar` can now be empty `""` in read and write config to treat quotes as normal characters
 - changed unparse result from string to object
   - now includes meta data about the result
     - mapping from csv fields to string position
@@ -1519,8 +1519,11 @@ class UnParser {
 
     //just ensure that the value is a string... should be enforced via types but why not
     str = str.toString()
-    const containsQuotes = str.indexOf(this._quoteChar) > -1
-    str = str.replace(this._quoteCharRegex, this._escapedQuote)
+    let containsQuotes = false
+    if (this._quoteChar) {
+      containsQuotes = str.indexOf(this._quoteChar) > -1
+      str = str.replace(this._quoteCharRegex, this._escapedQuote)
+    }
 
     let _preTestNeedQuotes = false
     if (this._determineFieldHasQuotesFunc) {
